@@ -32,12 +32,18 @@ let
 
     packageOverrides = pkgs: rec {
         # FIXME: find out why this doesn't work for atom and vscode (atomEnv)
-        xorg =
-        if x2go then
-          pkgs.xorg // {
-            libxcb = libxcb_x2go;
-          }
-        else pkgs.xorg;
+#        xorg =
+#        if x2go then
+#          pkgs.xorg // {
+#            libxcb = libxcb_x2go;
+#          }
+#        else pkgs.xorg;
+
+        vscode = pkgs.replaceDependency {
+          drv = pkgs.vscode;
+          oldDependency = pkgs.xorg.libxcb;
+          newDependency = libxcb_x2go;
+        };
     };
   };
 
