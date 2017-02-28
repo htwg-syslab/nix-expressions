@@ -28,7 +28,10 @@ in pkgs.stdenv.mkDerivation {
     pkgs.rustfmt
     pkgs.git
     pkgs.bats
-    pkgs.sublime
+    pkgs.strace
+    pkgs.gdb
+    pkgs.sublime3
+    pkgs.vscode
   ] ++ extraBuildInputs;
   shellHook = (rustShellHook){
     inherit name;
