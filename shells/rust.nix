@@ -44,6 +44,12 @@ let
           oldDependency = pkgs.xorg.libxcb;
           newDependency = libxcb_x2go;
         };
+
+        atom = pkgs.replaceDependency {
+          drv = pkgs.atom;
+          oldDependency = pkgs.xorg.libxcb;
+          newDependency = libxcb_x2go;
+        };
     };
   };
 
@@ -65,6 +71,7 @@ in configuredPkgs.stdenv.mkDerivation {
     configuredPkgs.sublime
 
     configuredPkgs.vscode
+    configuredPkgs.atom
   ] ++ extraBuildInputs;
   shellHook = (rustShellHook){
     inherit name;
