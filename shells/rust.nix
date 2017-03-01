@@ -1,9 +1,11 @@
-{ nixpkgs ? import "/nix/var/nix/profiles/per-user/root/channels/nixpkgs/"{}
-, fixpkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs-channels/archive/6d6cf3f24acce7ef4dc541c797ad23e70889883b.tar.gz") {}
-, pkgs ? fixpkgs
+{ nixpkgs ? <nixpkgs>
+, fixpkgs ? (fetchTarball "https://github.com/NixOS/nixpkgs-channels/archive/6d6cf3f24acce7ef4dc541c797ad23e70889883b.tar.gz")
+, _pkgs ? fixpkgs
+, pkgs ? import fixpkgs {}
 , name ? "generic"
 , version ? "Stable"
 , extraBuildInputs ? []
+, x2go ? true
 }: 
 let 
   rustPackages = builtins.getAttr "rust${version}" pkgs;
@@ -15,7 +17,45 @@ let
   '';
   commonVimRC = ''
   '';
-in pkgs.stdenv.mkDerivation {
+
+  libxcb_x2go = pkgs.xorg.libxcb.overrideDerivation (oldAttrs: {
+    postFixup = ''
+      chmod +w $out/lib
+      find $out/lib -name "*.so" -exec sed -i --follow-symlinks 's/BIG-REQUESTS/_IG-REQUESTS/' {} \;
+      chmod -w $out/lib
+    '';
+  });
+
+  config = {
+    allowUnfree = true;
+    maxJobs = pkgs.lib.mkDefault 5;
+
+    packageOverrides = pkgs: rec {
+        # FIXME: find out why this doesn't work for atom and vscode (atomEnv)
+#        xorg =
+#        if x2go then
+#          pkgs.xorg // {
+#            libxcb = libxcb_x2go;
+#          }
+#        else pkgs.xorg;
+
+        vscode = pkgs.replaceDependency {
+          drv = pkgs.vscode;
+          oldDependency = pkgs.xorg.libxcb;
+          newDependency = libxcb_x2go;
+        };
+
+        atom = pkgs.replaceDependency {
+          drv = pkgs.atom;
+          oldDependency = pkgs.xorg.libxcb;
+          newDependency = libxcb_x2go;
+        };
+    };
+  };
+
+  configuredPkgs = import _pkgs { inherit config; };
+
+in configuredPkgs.stdenv.mkDerivation {
   inherit name;
   buildInputs = with rustPackages;[
 #   TODO: add configured vim
@@ -25,13 +65,18 @@ in pkgs.stdenv.mkDerivation {
 #   })
     rustc cargo
   ] ++ [
-    pkgs.rustfmt
-    pkgs.git
-    pkgs.bats
-    pkgs.sublime
+    configuredPkgs.rustfmt
+    configuredPkgs.git
+    configuredPkgs.bats
+    configuredPkgs.sublime3
+
+    configuredPkgs.vscode
+    configuredPkgs.atom
   ] ++ extraBuildInputs;
   shellHook = (rustShellHook){
     inherit name;
     inherit rustc;
-  };
+  } + ''
+    alias code-x2go="LD_LIBRARY_PATH=${libxcb_x2go}/lib ${pkgs.vscode.out}/bin/code"
+  '';
 }
