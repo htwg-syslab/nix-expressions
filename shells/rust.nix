@@ -68,7 +68,7 @@ in configuredPkgs.stdenv.mkDerivation {
     configuredPkgs.rustfmt
     configuredPkgs.git
     configuredPkgs.bats
-    configuredPkgs.sublime
+    configuredPkgs.sublime3
 
     configuredPkgs.vscode
     configuredPkgs.atom
