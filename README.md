@@ -14,12 +14,12 @@ This project contains nix expressions for the syslab courses at HTWG Konstanz.
 
 ## Workflow
 
-### Example: run the base from the alpha branch
+### Example: run the base from a commit known to work
 
 ```
 (
     NIX_PATH=shellpkgs=https://github.com/NixOS/nixpkgs-channels/archive/6d6cf3f24acce7ef4dc541c797ad23e70889883b.tar.gz:$NIX_PATH
-    NIX_SHELL_DRV=https://github.com/htwg-syslab/nix-expressions/archive/alpha.tar.gz
+    NIX_SHELL_DRV=https://github.com/htwg-syslab/nix-expressions/archive/b9472c0fbac63e86e147db547b5242b10c26b3ed.tar.gz
     NIX_SHELL_DRVATTR=shell_bsys
 nix-shell \
     --argstr shDrv ${NIX_SHELL_DRV} \
