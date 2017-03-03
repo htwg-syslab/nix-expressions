@@ -19,7 +19,7 @@ This project contains nix expressions for the syslab courses at HTWG Konstanz.
 ```
 (
     NIX_PATH=shellpkgs=https://github.com/NixOS/nixpkgs-channels/archive/6d6cf3f24acce7ef4dc541c797ad23e70889883b.tar.gz:$NIX_PATH
-    NIX_SHELL_DRV=https://github.com/htwg-syslab/nix-expresisons/alpha.tar.gz
+    NIX_SHELL_DRV=https://github.com/htwg-syslab/nix-expressions/archive/alpha.tar.gz
     NIX_SHELL_DRVATTR=shell_bsys
 nix-shell \
     --argstr shDrv ${NIX_SHELL_DRV} \
