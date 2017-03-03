@@ -22,6 +22,7 @@ This project contains nix expressions for the syslab courses at HTWG Konstanz.
     NIX_SHELL_DRV=https://github.com/htwg-syslab/nix-expressions/archive/b9472c0fbac63e86e147db547b5242b10c26b3ed.tar.gz
     NIX_SHELL_DRVATTR=shell_bsys
 nix-shell \
+    --pure \
     --argstr shDrv ${NIX_SHELL_DRV} \
     -A ${NIX_SHELL_DRVATTR} \
     ${NIX_SHELL_DRV}

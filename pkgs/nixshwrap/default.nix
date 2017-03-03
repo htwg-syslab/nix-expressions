@@ -18,6 +18,7 @@ mkDerivation rec {
     #! ${pkgs.bash}/bin/sh
     exec \
       ${pkgs.nix}/bin/nix-shell \
+        --pure \
         --argstr shDrv ${shDrv} \
         -A ${shDrvAttr} \
         ${shDrv}
