@@ -1,36 +1,40 @@
 { pkgs
 , callPackage
-}: 
+}:
 
-let 
+let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
   dependencies = {
-    base = 
+    base =
       with pkgs; [
         bashInteractive
         man
         less
         stdmanpages
+        htop
+        vim
         which
-        bashInteractive 
+        bashInteractive
+        zsh
         nix
       ];
 
-    code = 
+    code =
       with pkgs; [
         git
         bats
         sublime3
         vscode
         atom
+        geany-with-vte
       ];
 
-    rust = 
+    rust =
       (with pkgs;[
         rustfmt
-        rustracer 
-      ]) ++ 
+        rustracer
+      ]) ++
       (with pkgs.rustStable;[
         rustc cargo
       ]);
@@ -40,14 +44,14 @@ in {
 
   shell_base = mkShellDerivation rec {
     name = "shell_base";
-    buildInputs = with dependencies; 
+    buildInputs = with dependencies;
       base
     ;
   };
 
   shell_bsys = mkShellDerivation rec {
     name = "shell_bsys";
-    buildInputs = with dependencies; 
+    buildInputs = with dependencies;
       base
       ++ code
       ++ rust
