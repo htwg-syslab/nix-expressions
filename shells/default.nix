@@ -11,12 +11,18 @@ let
         bashInteractive
         man
         less
+        curl
         stdmanpages
         htop
         vim
+        ncurses
+        tmux
         which
         bashInteractive
         zsh
+        zsh-autosuggestions
+        zsh-completions
+        zsh-syntax-highlighting
         nix
       ];
 
