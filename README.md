@@ -43,16 +43,19 @@ pushd nix-expressions
 The following example assumes `$PWD` is the path of the git repository.
 
 1. Prepare the environment variables
+
     ```bash
     NIX_PATH=shellpkgs=https://github.com/NixOS/nixpkgs-channels/archive/6d6cf3f24acce7ef4dc541c797ad23e70889883b.tar.gz:$NIX_PATH
     NIX_SHELL_DRV=$PWD
     NIX_SHELL_DRVATTR=shell_bsys
     ```
 2. Make your desired changes
+
     ```bash
     $EDITOR shells/default.nix
     ```
 3. Try out your changes
+
     ```
     nix-shell \
         --pure \
