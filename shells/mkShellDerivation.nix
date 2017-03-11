@@ -9,7 +9,10 @@ let
   nixshwrap = callPackage ../pkgs/nixshwrap { shDrvAttr=name; }; 
 
 in mkDerivation {
-  inherit name buildInputs;
+  inherit name;
+  buildInputs = with shellpkgs; [
+    glibcLocales
+  ] ++ buildInputs;
   shellHook = ''
     function exitstatus() {
       if [[ $? -eq 0 ]]; then
@@ -44,5 +47,7 @@ in mkDerivation {
     export NIX_PATH=shellpkgs=${shellpkgs.path}
     export NIX_REMOTE=daemon
     export SHELL=${nixshwrap}/bin/nixshwrap
+    export LANG=en_US.UTF-8
+    export LC_CTYPE=en_US.UTF-8
   '' + shellHook;
 }
