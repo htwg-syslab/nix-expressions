@@ -51,6 +51,12 @@ let
       ]);
   };
 
+  shellHooks = {
+    rust = ''
+      export RUST_SRC_PATH="${pkgs.rustStable.rustc.src}/src"
+    '';
+  };
+
 in {
 
   shell_base = mkShellDerivation rec {
@@ -66,6 +72,9 @@ in {
       base
       ++ code
       ++ rust
+    ;
+    shellHook = with shellHooks;
+      rust
     ;
   };
 }
