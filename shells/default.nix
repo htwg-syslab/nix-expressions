@@ -13,6 +13,9 @@ let
         less
         curl
         stdmanpages
+        pstree
+        psmisc
+        procps
         htop
         vim
         ncurses
@@ -30,6 +33,8 @@ let
       with pkgs; [
         git
         bats
+        python27Full
+        clang
         sublime3
         vscode
         atom
