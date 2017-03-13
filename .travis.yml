@@ -1,4 +1,4 @@
 language: nix
 script:
-  - ./scripts/local-source base --command true
-  - ./scripts/local-source bsys --command true
+  - ./scripts/local-shell.sh base --command true
+  - ./scripts/local-shell.sh bsys --command true
