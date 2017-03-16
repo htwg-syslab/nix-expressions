@@ -10,6 +10,7 @@ let
       with pkgs; [
         openssh
         strace
+        file
         bashInteractive
         man
         less
@@ -20,7 +21,6 @@ let
         procps
         htop
         vim
-        ncurses
         tmux
         which
         bashInteractive
@@ -33,6 +33,8 @@ let
 
     code =
       with pkgs; [
+        pkgconfig
+        ncurses
         git
         bats
         python27Full
@@ -51,6 +53,14 @@ let
       (with pkgs.rustStable;[
         rustc cargo
       ]);
+    cpp =
+      (with pkgs;[
+        busybox.nativeBuildInputs
+      ]);
+    cpp-embedded =
+      (with pkgs;[
+      ]);
+    
   };
 
   shellHooks = {
@@ -79,4 +89,46 @@ in {
       rust
     ;
   };
+
+  shell_syso = mkShellDerivation rec {
+    name = "shell_syso";
+    buildInputs = 
+      (with dependencies;
+        base
+        ++ code)
+        ++
+      (with pkgs; [
+#        glibc.static
+        busybox.nativeBuildInputs
+        cpio
+        gccCrossArmV7LinuxHardfp 
+      ])
+    ;
+    shellHook = with shellHooks;
+    ''
+        export hardeningDisable=all
+    ''
+    ;
+  };
+
+  shell_sysoFHS = (pkgs.buildFHSUserEnv rec {
+    name = "syso-buildenv";
+    targetPkgs = pkgs: with pkgs;[
+        which
+        bashInteractive
+        git
+    ];
+    multiPkgs = pkgs: with pkgs;[
+        gnumake
+        gcc-unwrapped
+        glibc.static
+        binutils
+        busybox.nativeBuildInputs
+        ncurses
+        ncurses.dev
+    ];
+    profile = ''
+        export LIBRARY_PATH=$LD_LIBRARY_PATH
+    '';
+  }).env;
 }
