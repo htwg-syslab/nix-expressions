@@ -1,4 +1,4 @@
-{ shDrv }:
+{ shDrv ? null }:
 let
   # Untouched but specific nixpkgs
   shellpkgs = import <shellpkgs> {};
@@ -25,6 +25,10 @@ let
         };
 
         nixshwrap = callPackage ./pkgs/nixshwrap { };
+
+        configuredPkgs = {
+          vim = callPackage ./pkgs/configured/vim-derivates/vim.nix { name = "vim"; };
+        };
     };
   };
   pkgs = import <shellpkgs> { inherit config; };
@@ -39,7 +43,7 @@ let
   };
 
 in rec {
-
+  inherit pkgs;
   inherit ( callPackage ./shells { } )
     shell_base
     shell_bsys
