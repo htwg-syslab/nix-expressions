@@ -2,8 +2,7 @@
 set -e
 set -x
 
-SCRIPT="$(readlink --canonicalize-existing "$0")"
-SCRIPTPATH="$(dirname "$SCRIPT")"
+SCRIPTPATH="$(cd "$(dirname "$0")" && pwd)"
 source $SCRIPTPATH/local-source.sh
 NIX_SHELL_DRV=$SCRIPTPATH/../
 NIX_SHELL_DRVATTR=shell_${1:-base}
