@@ -63,3 +63,8 @@ The following example assumes `$PWD` is the path of the git repository.
         -A ${NIX_SHELL_DRVATTR} \
         ${NIX_SHELL_DRV}
     ```
+
+### Contribution & Changes
+
+The master branch is protected and requires status checks.
+Therefore all changes  must be made by filing a Pull Request.
