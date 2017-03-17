@@ -26,5 +26,5 @@ function labshell() {
     if [[ ${LABSHELL_UPDATE} -eq 1 ]]; then
         _labshellDld
     fi
-    sh $(_labshellGetPath)/scripts/labshell.sh $@
+    NIX_SHELL_DRVATTR=shell_$1 $(_labshellGetPath)/scripts/labshell.sh
 }

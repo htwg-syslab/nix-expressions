@@ -1,4 +1,5 @@
 language: nix
 script:
-  - ./scripts/local-shell.sh base --command true
-  - ./scripts/local-shell.sh bsys --command true
+  - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh
+  - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh base
+  - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh bsys
