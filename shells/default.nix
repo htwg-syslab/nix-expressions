@@ -8,6 +8,7 @@ let
   dependencies = {
     base =
       with pkgs; [
+        strace
         bashInteractive
         man
         less
