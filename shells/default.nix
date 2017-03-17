@@ -8,6 +8,7 @@ let
   dependencies = {
     base =
       with pkgs; [
+        openssh
         strace
         bashInteractive
         man
