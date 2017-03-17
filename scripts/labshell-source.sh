@@ -26,5 +26,5 @@ function labshell() {
     if [[ ${LABSHELL_UPDATE} -eq 1 ]]; then
         _labshellDld
     fi
-    $(_labshellGetPath)/scripts/labshell.sh shell_$1
+    $(_labshellGetPath)/scripts/labshell.sh $1
 }
