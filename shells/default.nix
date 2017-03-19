@@ -54,6 +54,9 @@ let
   };
 
   shellHooks = {
+    base = ''
+        export PAGER=${pkgs.less}/bin/less
+    '';
     rust = ''
       export RUST_SRC_PATH="${pkgs.rustStable.rustc.src}/src"
     '';
@@ -66,6 +69,9 @@ in {
     buildInputs = with dependencies;
       base
     ;
+    shellHook = with shellHooks;
+      base
+    ;
   };
 
   shell_bsys = mkShellDerivation rec {
@@ -76,7 +82,8 @@ in {
       ++ rust
     ;
     shellHook = with shellHooks;
-      rust
+      base
+      + rust
     ;
   };
 }
