@@ -35,6 +35,7 @@ let
       with pkgs; [
         git
         bats
+        shellcheck
         python27Full
         clang
         sublime3
