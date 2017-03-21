@@ -90,18 +90,37 @@ in {
     ;
   };
 
-  shell_syso = mkShellDerivation rec {
-    name = "shell_syso";
+  shell_sysoV1 = mkShellDerivation rec {
+    name = "shell_sysoV1";
     buildInputs = 
       (with dependencies;
         base
         ++ code)
         ++
       (with pkgs; [
-#        glibc.static
+        busybox.nativeBuildInputs
+        gcc
+        cpio
+      ])
+    ;
+    shellHook = with shellHooks;
+    ''
+        export hardeningDisable=all
+    ''
+    ;
+  };
+
+  shell_sysoV2 = mkShellDerivation rec {
+    name = "shell_sysoV2";
+    buildInputs = 
+      (with dependencies;
+        base
+        ++ code)
+        ++
+      (with pkgs; [
         busybox.nativeBuildInputs
         cpio
-        gccCrossArmV7LinuxHardfp 
+        gccCrossArmNoneEabi 
       ])
     ;
     shellHook = with shellHooks;
@@ -130,5 +149,6 @@ in {
     profile = ''
         export LIBRARY_PATH=$LD_LIBRARY_PATH
     '';
-  }).env;
+   });
+
 }

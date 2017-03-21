@@ -30,20 +30,10 @@ let
           vim = callPackage ./pkgs/configured/vim-derivates/vim.nix { name = "vim"; };
         };
 
-        gccCrossArmV7LinuxHardfp = (pkgsFun {
+        gccCrossArmNoneEabi = (pkgsFun {
           crossSystem = {
             config = "arm-none-eabi";
-            arch = "armv7";
-            float = "hard";
-            fpu = "vfp";
             libc = null;
-            withTLS = true;
-            openssl.system = "linux-generic32";
-            gcc = {
-              arch = "armv7";
-              fpu = "vfp";
-              float = "hard";
-            };
           };
         }).gccCrossStageStatic;
     };
@@ -70,7 +60,8 @@ in rec {
   inherit ( callPackage ./shells { } )
     shell_base
     shell_bsys
-    shell_syso
+    shell_sysoV1
+    shell_sysoV2
     shell_sysoFHS
   ;
 
