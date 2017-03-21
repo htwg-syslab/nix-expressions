@@ -106,9 +106,12 @@ in {
         ++ code)
         ++
       (with pkgs; [
+        linuxPackages.kernel.nativeBuildInputs
         busybox.nativeBuildInputs
         gcc
+        glibc.static
         cpio
+        qemu
       ])
     ;
     shellHook = with shellHooks;
@@ -126,6 +129,7 @@ in {
         ++ code)
         ++
       (with pkgs; [
+        qemu
         busybox.nativeBuildInputs
         cpio
         gccCrossArmNoneEabi 
