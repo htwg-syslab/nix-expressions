@@ -29,9 +29,22 @@ let
         configuredPkgs = {
           vim = callPackage ./pkgs/configured/vim-derivates/vim.nix { name = "vim"; };
         };
+
+        gccCrossArmNoneEabi = (pkgsFun {
+          crossSystem = {
+            config = "arm-none-eabi";
+            libc = null;
+          };
+        }).gccCrossStageStatic;
     };
+
+    system = "x86_64-linux";
+    platform = { kernelArch = "x86_64"; kernelAutoModules = true; kernelBaseConfig = "defconfig"; kernelHeadersBaseConfig = "defconfig"; kernelTarget = "bzImage"; name = "pc"; uboot = null; };
   };
-  pkgs = import <shellpkgs> { inherit config; };
+
+  pkgsFun = import <shellpkgs>;
+  pkgsFunArgs = { inherit config; };
+  pkgs = pkgsFun pkgsFunArgs;
 
   callPackage = pkgs.newScope { 
     # self import to override old callPackage
@@ -47,6 +60,9 @@ in rec {
   inherit ( callPackage ./shells { } )
     shell_base
     shell_bsys
+    shell_sysoHW0
+    shell_sysoHW1
+    shell_sysoFHS
   ;
 
 }
