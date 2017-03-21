@@ -90,8 +90,8 @@ in {
     ;
   };
 
-  shell_sysoV1 = mkShellDerivation rec {
-    name = "shell_sysoV1";
+  shell_sysoHW0 = mkShellDerivation rec {
+    name = "shell_sysoHW0";
     buildInputs = 
       (with dependencies;
         base
@@ -110,8 +110,8 @@ in {
     ;
   };
 
-  shell_sysoV2 = mkShellDerivation rec {
-    name = "shell_sysoV2";
+  shell_sysoHW1 = mkShellDerivation rec {
+    name = "shell_sysoHW1";
     buildInputs = 
       (with dependencies;
         base
