@@ -61,7 +61,6 @@ let
     cpp-embedded =
       (with pkgs;[
       ]);
-    
   };
 
   shellHooks = {
@@ -132,7 +131,7 @@ in {
         qemu
         busybox.nativeBuildInputs
         cpio
-        gccCrossArmNoneEabi 
+        gccCrossArmNoneEabi
       ])
     ;
     shellHook = with shellHooks;
