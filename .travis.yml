@@ -1,3 +1,7 @@
+branches:
+  only:
+    - master
+
 language: nix
 script:
   - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh
