@@ -29,13 +29,14 @@ let
         zsh-completions
         zsh-syntax-highlighting
         nix
+        git
+        tree
       ];
 
     code =
       with pkgs; [
         pkgconfig
         ncurses
-        git
         bats
         shellcheck
         python27Full
@@ -97,20 +98,29 @@ in {
     ;
   };
 
-  shell_sysoHW0 = mkShellDerivation rec {
-    name = "shell_sysoHW0";
-    buildInputs = 
+  shell_sysoHW0 = let
+    in mkShellDerivation rec {
+    name = "shell_sysoHW1";
+    buildInputs = dependencies.base;
+  };
+
+  shell_sysoHW1 = let
+    bbStatic = pkgs.busybox.override {
+      enableStatic=true;
+    };
+    in mkShellDerivation rec {
+    name = "shell_sysoHW1";
+    buildInputs =
       (with dependencies;
-        base
-        ++ code)
+        base)
         ++
       (with pkgs; [
+        pkgconfig
         linuxPackages.kernel.nativeBuildInputs
-        busybox.nativeBuildInputs
-        gcc
-        glibc.static
-        cpio
+        bbStatic.nativeBuildInputs
+        ncurses ncurses.dev
         qemu
+        cpio
       ])
     ;
     shellHook = with shellHooks;
@@ -120,9 +130,9 @@ in {
     ;
   };
 
-  shell_sysoHW1 = mkShellDerivation rec {
-    name = "shell_sysoHW1";
-    buildInputs = 
+  shell_sysoHW2 = mkShellDerivation rec {
+    name = "shell_sysoHW2";
+    buildInputs =
       (with dependencies;
         base
         ++ code)

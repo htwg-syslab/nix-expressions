@@ -62,6 +62,7 @@ in rec {
     shell_bsys
     shell_sysoHW0
     shell_sysoHW1
+    shell_sysoHW2
     shell_sysoFHS
   ;
 
