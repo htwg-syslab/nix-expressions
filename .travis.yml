@@ -4,3 +4,4 @@ script:
   - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh base
   - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh bsys
   - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh sysoHW0
+  - NIX_SHELL_OPTS="--command true" ./scripts/labshell.sh sysoHW1
