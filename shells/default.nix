@@ -45,6 +45,7 @@ let
         vscode
         atom
         geany-with-vte
+        gdb
       ];
 
     rust =
