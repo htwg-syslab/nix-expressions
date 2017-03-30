@@ -99,6 +99,26 @@ in {
     ;
   };
 
+  shell_rtos = mkShellDerivation rec {
+    name = "shell_rtos";
+    buildInputs =
+      (with dependencies;
+        base
+        ++ code
+        ++ rust)
+        ++
+      (with pkgs; [
+        qemu
+        grub
+        nasm
+      ])
+    ;
+    shellHook = with shellHooks;
+      base
+      + rust
+    ;
+  };
+
   shell_sysoHW0 = let
     in mkShellDerivation rec {
     name = "shell_sysoHW1";
