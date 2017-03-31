@@ -60,6 +60,7 @@ in rec {
   inherit ( callPackage ./shells { } )
     shell_base
     shell_bsys
+    shell_rtos
     shell_sysoHW0
     shell_sysoHW1
     shell_sysoHW2
