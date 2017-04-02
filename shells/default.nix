@@ -41,11 +41,13 @@ let
         shellcheck
         python27Full
         clang
+        lldb
         sublime3
         vscode
         atom
         geany-with-vte
         gdb
+        valgrind
       ];
 
     rust =
