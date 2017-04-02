@@ -71,6 +71,9 @@ let
     base = ''
         export PAGER=${pkgs.less}/bin/less
     '';
+    code = ''
+        export hardeningDisable=all
+    '';
     rust = ''
       export RUST_SRC_PATH="${pkgs.rustStable.rustc.src}/src"
     '';
@@ -97,6 +100,7 @@ in {
     ;
     shellHook = with shellHooks;
       base
+      + code
       + rust
     ;
   };
@@ -117,6 +121,7 @@ in {
     ;
     shellHook = with shellHooks;
       base
+      + code
       + rust
     ;
   };
@@ -147,9 +152,8 @@ in {
       ])
     ;
     shellHook = with shellHooks;
-    ''
-        export hardeningDisable=all
-    ''
+        base
+        + code
     ;
   };
 
@@ -168,9 +172,8 @@ in {
       ])
     ;
     shellHook = with shellHooks;
-    ''
-        export hardeningDisable=all
-    ''
+        base
+        + code
     ;
   };
 
