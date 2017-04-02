@@ -212,16 +212,49 @@ in {
     ;
   };
 
-  shell_sysoHW2 = mkShellDerivation rec {
+  shell_sysoHW2 = let
+    bbStatic = pkgs.busybox.override {
+      enableStatic=true;
+    };
+    dbStatic = pkgs.dropbear.override {
+      enableStatic=true;
+    };
+    in mkShellDerivation rec {
     name = "shell_sysoHW2";
     buildInputs =
       (with dependencies;
         base
-        ++ code)
+        ++ code
+        ++ rust)
         ++
       (with pkgs; [
+        linuxPackages.kernel.nativeBuildInputs
+        bbStatic.nativeBuildInputs
+        dbStatic.nativeBuildInputs
+        zlib zlib.static glibc glibc.static
         qemu
-        busybox.nativeBuildInputs
+        cpio
+        pax-utils
+      ])
+    ;
+    shellHook = with shellHooks;
+        base
+        + code
+    ;
+  };
+
+  shell_sysoHW3 = mkShellDerivation rec {
+    name = "shell_sysoHW3";
+    buildInputs =
+      (with dependencies;
+        base
+        ++ code
+        ++ rust)
+        ++
+      (with pkgs; [
+        linuxPackages.kernel.nativeBuildInputs
+        bbStatic.nativeBuildInputs
+        qemu
         cpio
         gccCrossArmNoneEabi
       ])
