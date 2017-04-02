@@ -46,7 +46,6 @@ let
         vscode
         atom
         geany-with-vte
-        readline
         gdb
         valgrind
       ];
