@@ -36,7 +36,7 @@ let
     code =
       with pkgs; [
         pkgconfig
-        ncurses
+        ncurses ncurses.dev
         bats
         shellcheck
         python27Full
@@ -140,13 +140,13 @@ in {
     name = "shell_sysoHW1";
     buildInputs =
       (with dependencies;
-        base)
+        base
+        ++ code
+        ++ rust)
         ++
       (with pkgs; [
-        pkgconfig
         linuxPackages.kernel.nativeBuildInputs
         bbStatic.nativeBuildInputs
-        ncurses ncurses.dev
         qemu
         cpio
       ])
