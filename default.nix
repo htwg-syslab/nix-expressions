@@ -12,6 +12,8 @@ let
     maxJobs = shellpkgs.lib.mkDefault 5;
 
     packageOverrides = pkgs: with pkgs; rec {
+        openssh = pkgs.openssh.override { withKerberos = true; };
+
         vscode = pkgs.replaceDependency {
           drv = pkgs.vscode;
           oldDependency = pkgs.xorg.libxcb;
