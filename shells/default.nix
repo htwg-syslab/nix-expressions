@@ -31,6 +31,7 @@ let
         nix
         git
         tree
+        indent
       ];
 
     code =
@@ -129,7 +130,14 @@ in {
   shell_sysoHW0 = let
     in mkShellDerivation rec {
     name = "shell_sysoHW1";
-    buildInputs = dependencies.base;
+    buildInputs = with dependencies; 
+        base
+        ++ code
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+    ;
   };
 
   shell_sysoHW1 = let
