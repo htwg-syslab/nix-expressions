@@ -44,6 +44,7 @@ in mkDerivation {
     }
     setPS1 $name
     unset $name
+    unset $shell
     export NIX_PATH=shellpkgs=${shellpkgs.path}
     export NIX_REMOTE=daemon
     export SHELL=${nixshwrap}/bin/nixshwrap
