@@ -11,7 +11,6 @@ let
         openssh
         strace
         file
-        bashInteractive
         man
         less
         curl
@@ -29,7 +28,7 @@ let
         zsh-completions
         zsh-syntax-highlighting
         nix
-        git
+        gitFull
         tree
         indent
       ];
@@ -71,6 +70,11 @@ let
   shellHooks = {
     base = ''
         export PAGER=${pkgs.less}/bin/less
+        source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
+        '' +
+        # FIXME: whys is this needed?
+        ''
+        source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
         export hardeningDisable=all
