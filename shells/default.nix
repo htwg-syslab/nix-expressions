@@ -47,6 +47,7 @@ let
         atom
         geany-with-vte
         gdb
+        ddd
         valgrind
       ];
 
