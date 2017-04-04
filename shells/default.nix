@@ -19,7 +19,7 @@ let
         psmisc
         procps
         htop
-        vim
+        configuredPkgs.vim
         tmux
         which
         bashInteractive
@@ -70,6 +70,7 @@ let
 
   shellHooks = {
     base = ''
+        export EDITOR=vim
         export PAGER=${pkgs.less}/bin/less
         source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
         '' +

@@ -7,7 +7,7 @@
 pkgs.vim_configurable.customize {
   inherit name;
   # add custom .vimrc lines like this:
-  vimrcConfig.customRC = (import ./commonrc.nix {}) + ''
+  vimrcConfig.customRC = (import ./commonrc.nix { inherit pkgs; }) + ''
   '' + additionalRC;
 
   vimrcConfig.vam.knownPlugins = pkgs.vimPlugins; # optional
