@@ -8,7 +8,7 @@ let
   dependencies = {
     base =
       with pkgs; [
-        openssh
+        openssh_with_kerberos
         strace
         file
         man
@@ -73,6 +73,7 @@ let
         export EDITOR=vim
         export PAGER=${pkgs.less}/bin/less
         source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
+        export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
         '' +
         # FIXME: whys is this needed?
         ''
