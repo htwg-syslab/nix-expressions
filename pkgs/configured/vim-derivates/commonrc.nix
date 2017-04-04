@@ -1,5 +1,6 @@
-{}:
+{ pkgs }:
 ''
+set shell=${pkgs.bash}/bin/bash
 set nocompatible
 set mouse=
 
