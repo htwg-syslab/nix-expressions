@@ -74,6 +74,7 @@ let
         export PAGER=${pkgs.less}/bin/less
         source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
         export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
+        git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
         '' +
         # FIXME: whys is this needed?
         ''
