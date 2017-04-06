@@ -56,8 +56,8 @@ let
         rustfmt
         rustracer
       ]) ++
-      (with pkgs.rustStable;[
-        rustc cargo
+      (with pkgs.rustChannels.stable;[
+        rust
       ]);
     cpp =
       (with pkgs;[
@@ -84,7 +84,7 @@ let
         export hardeningDisable=all
     '';
     rust = ''
-      export RUST_SRC_PATH="${pkgs.rustStable.rustc.src}/src"
+      export RUST_SRC_PATH="${pkgs.rustChannels.stable.rust-src}/lib/rustlib/src/rust/src/"
     '';
   };
 
