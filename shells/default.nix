@@ -53,8 +53,6 @@ let
 
     rust =
       (with pkgs;[
-        rustfmt
-        rustracer
       ]) ++
       (with pkgs.rustChannels.stable;[
         rust
@@ -85,6 +83,16 @@ let
     '';
     rust = ''
       export RUST_SRC_PATH="${pkgs.rustChannels.stable.rust-src}/lib/rustlib/src/rust/src/"
+
+      export CARGO_INSTALL_ROOT=/var/tmp/cargo
+      mkdir -p $CARGO_INSTALL_ROOT
+      export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
+
+      for crate in racer rustfmt rustsym; do
+        cargo install $crate
+      done
+
+      chmod g+w -R $CARGO_INSTALL_ROOT
     '';
   };
 
