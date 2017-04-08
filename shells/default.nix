@@ -89,7 +89,10 @@ let
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
       for crate in racer rustfmt rustsym; do
-        cargo install $crate
+        cargo install --list | grep $crate 2>&1 1>/dev/null
+        if [ ! $? -eq 0 ]; then
+          cargo install $crate
+        fi
       done
 
       chmod g+w -R $CARGO_INSTALL_ROOT
