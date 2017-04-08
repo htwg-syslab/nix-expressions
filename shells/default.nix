@@ -76,11 +76,13 @@ let
     builtins.foldl' (a: b:
         a + ''
         CRATE=${b}
-        VERSION=${builtins.getAttr b dependencies.rustCrates}
+        CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
         cargo install --list | grep "$CRATE v$VERSION" 2>&1 1>/dev/null
         if [ ! $? -eq 0 ]; then
           cargo install --force --vers $VERSION $CRATE
         fi
+        unset CRATE
+        unset CRATE_VERSION
         ''
     ) "" (builtins.attrNames dependencies.rustCrates)
   );
