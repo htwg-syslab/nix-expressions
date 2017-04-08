@@ -64,7 +64,26 @@ let
     cpp-embedded =
       (with pkgs;[
       ]);
+
+    rustCrates = {
+      racer = "2.0.6";
+      rustfmt = "0.8.3";
+      rustsym = "0.3.1";
+    };
   };
+
+  genRustCratesCode = ({}:
+    builtins.foldl' (a: b:
+        a + ''
+        CRATE=${b}
+        VERSION=${builtins.getAttr b dependencies.rustCrates}
+        cargo install --list | grep "$CRATE v$VERSION" 2>&1 1>/dev/null
+        if [ ! $? -eq 0 ]; then
+          cargo install --force --vers $VERSION $CRATE
+        fi
+        ''
+    ) "" (builtins.attrNames dependencies.rustCrates)
+  );
 
   shellHooks = {
     base = ''
@@ -88,12 +107,7 @@ let
       mkdir -p $CARGO_INSTALL_ROOT
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
-      for crate in racer rustfmt rustsym; do
-        cargo install --list | grep $crate 2>&1 1>/dev/null
-        if [ ! $? -eq 0 ]; then
-          cargo install $crate
-        fi
-      done
+      ${genRustCratesCode{}}
 
       chmod g+w -R $CARGO_INSTALL_ROOT
     '';
