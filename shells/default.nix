@@ -73,14 +73,15 @@ let
   genRustCratesCode = ({}:
     builtins.foldl' (a: b:
         a + ''
-        CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
-        cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
-        if [ ! $? -eq 0 ]; then
-          cargo install --force --vers $CATE_VERSION $CRATE
-        fi
-        unset CRATE
-        unset CRATE_VERSION
+	(
+	  set -e
+	  CRATE=${b}
+	  CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
+	  cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
+	  if [ ! $? -eq 0 ]; then
+	    cargo install --force --vers $CRATE_VERSION $CRATE
+	  fi
+	) || exit $?
         ''
     ) "" (builtins.attrNames dependencies.rustCrates)
   );
