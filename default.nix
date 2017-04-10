@@ -42,8 +42,19 @@ let
     platform = { kernelArch = "x86_64"; kernelAutoModules = true; kernelBaseConfig = "defconfig"; kernelHeadersBaseConfig = "defconfig"; kernelTarget = "bzImage"; name = "pc"; uboot = null; };
   };
 
+  rustOverlaySrc = shellpkgs.fetchFromGitHub {
+    owner = "htwg-syslab";
+    repo = "nixpkgs-mozilla";
+    rev = "1eb61fb93ea32d7343efc5f9a53b5e4ab9846390";
+    sha256 = "0dplynkwp39npgfs8qcr9731x6rvj4jfn25as209f6g04jq5j1bc";
+  };
+
+  overlays = [
+    (import "${rustOverlaySrc}/rust-overlay.nix")
+  ];
+
   pkgsFun = import <shellpkgs>;
-  pkgsFunArgs = { inherit config; };
+  pkgsFunArgs = { inherit config overlays; };
   pkgs = pkgsFun pkgsFunArgs;
 
   callPackage = pkgs.newScope { 

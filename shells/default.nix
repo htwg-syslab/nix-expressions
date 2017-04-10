@@ -5,6 +5,8 @@
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
+  rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+
   dependencies = {
     base =
       with pkgs; [
@@ -51,14 +53,8 @@ let
         valgrind
       ];
 
-    rust =
-      (with pkgs;[
-        rustfmt
-        rustracer
-      ]) ++
-      (with pkgs.rustStable;[
-        rustc cargo
-      ]);
+    rust = [ rustExtended ];
+
     cpp =
       (with pkgs;[
         busybox.nativeBuildInputs
@@ -66,7 +62,29 @@ let
     cpp-embedded =
       (with pkgs;[
       ]);
+
+    rustCrates = {
+      racer = "2.0.6";
+      rustfmt = "0.8.3";
+      rustsym = "0.3.1";
+    };
   };
+
+  genRustCratesCode = ({}:
+    builtins.foldl' (a: b:
+        a + ''
+	(
+	  set -e
+	  CRATE=${b}
+	  CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
+	  cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
+	  if [ ! $? -eq 0 ]; then
+	    cargo install --force --vers $CRATE_VERSION $CRATE
+	  fi
+	) || exit $?
+        ''
+    ) "" (builtins.attrNames dependencies.rustCrates)
+  );
 
   shellHooks = {
     base = ''
@@ -84,7 +102,15 @@ let
         export hardeningDisable=all
     '';
     rust = ''
-      export RUST_SRC_PATH="${pkgs.rustStable.rustc.src}/src"
+      export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
+
+      export CARGO_INSTALL_ROOT=/var/tmp/cargo
+      mkdir -p $CARGO_INSTALL_ROOT
+      export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
+
+      ${genRustCratesCode{}}
+
+      chmod g+w -R $CARGO_INSTALL_ROOT
     '';
   };
 
