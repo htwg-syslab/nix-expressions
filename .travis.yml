@@ -1,6 +1,9 @@
 branches:
   only:
     - master
+cache:
+  directories:
+    - /var/tmp/cargo/
 
 language: nix
 script:
