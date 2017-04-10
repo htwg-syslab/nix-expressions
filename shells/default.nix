@@ -5,6 +5,8 @@
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
+  rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+
   dependencies = {
     base =
       with pkgs; [
@@ -51,12 +53,8 @@ let
         valgrind
       ];
 
-    rust =
-      (with pkgs;[
-      ]) ++
-      (with pkgs.rustChannels.stable;[
-        rust
-      ]);
+    rust = [ rustExtended ];
+
     cpp =
       (with pkgs;[
         busybox.nativeBuildInputs
@@ -103,7 +101,7 @@ let
         export hardeningDisable=all
     '';
     rust = ''
-      export RUST_SRC_PATH="${pkgs.rustChannels.stable.rust-src}/lib/rustlib/src/rust/src/"
+      export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
       mkdir -p $CARGO_INSTALL_ROOT
