@@ -43,10 +43,10 @@ let
   };
 
   rustOverlaySrc = shellpkgs.fetchFromGitHub {
-    owner = "mozilla";
+    owner = "htwg-syslab";
     repo = "nixpkgs-mozilla";
-    rev = "4779fb7776c3d38d78b5ebcee62165e6d1350f74";
-    sha256 = "04q6pwlz82qsm81pp7kk7i6ngrslq193v5wchdsrdifbn8cdqgbs";
+    rev = "1eb61fb93ea32d7343efc5f9a53b5e4ab9846390";
+    sha256 = "0dplynkwp39npgfs8qcr9731x6rvj4jfn25as209f6g04jq5j1bc";
   };
 
   overlays = [
