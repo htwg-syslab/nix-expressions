@@ -126,6 +126,18 @@ in {
     ;
   };
 
+  shell_code= mkShellDerivation rec {
+    name = "shell_code";
+    buildInputs = with dependencies;
+      base
+      ++ code
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+    ;
+  };
+
   shell_bsys = mkShellDerivation rec {
     name = "shell_bsys";
     buildInputs = with dependencies;
