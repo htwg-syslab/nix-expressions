@@ -32,6 +32,7 @@ let
         gitFull
         tree
         indent
+        schedtool
       ];
 
     code =
