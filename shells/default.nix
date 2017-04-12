@@ -16,7 +16,6 @@ let
         man
         less
         curl
-        stdmanpages
         pstree
         psmisc
         procps
@@ -33,6 +32,7 @@ let
         gitFull
         tree
         indent
+        schedtool
       ];
 
     code =
@@ -93,6 +93,7 @@ let
         source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
         export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
         git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
+        export MANPATH="${pkgs.man-pages}/share/man:${pkgs.stdmanpages}/share/man"
         '' +
         # FIXME: whys is this needed?
         ''
