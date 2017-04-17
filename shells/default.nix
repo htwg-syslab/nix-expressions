@@ -86,6 +86,12 @@ let
     ) "" (builtins.attrNames dependencies.rustCrates)
   );
 
+  genManPath = ({deps}:
+    builtins.foldl' (a: b:
+        a + ":${b}/share/man"
+    ) "" (deps)
+  );
+
   shellHooks = {
     base = ''
         export EDITOR=vim
@@ -93,16 +99,18 @@ let
         source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
         export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
         git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
-        export MANPATH="${pkgs.man-pages}/share/man:${pkgs.stdmanpages}/share/man"
+        export MANPATH=${genManPath {deps=dependencies.base;}}
         '' +
         # FIXME: whys is this needed?
         ''
         source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
+        export MANPATH=$MANPATH:${genManPath {deps=dependencies.code;}}
         export hardeningDisable=all
     '';
     rust = ''
+      export MANPATH=$MANPATH:${genManPath {deps=dependencies.rust;}}
       export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
