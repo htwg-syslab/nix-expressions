@@ -72,17 +72,16 @@ let
 
   genRustCratesCode = ({}:
     builtins.foldl' (a: b:
-        a + ''
-	(
-	  set -e
-	  CRATE=${b}
-	  CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
-	  cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
-	  if [ ! $? -eq 0 ]; then
-	    cargo install --force --vers $CRATE_VERSION $CRATE
-	  fi
-	) || exit $?
-        ''
+      a + ''(
+        set -e
+        CRATE=${b}
+        CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
+        cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
+        if [ ! $? -eq 0 ]; then
+          cargo install --force --vers $CRATE_VERSION $CRATE
+        fi
+      ) || exit $?
+      ''
     ) "" (builtins.attrNames dependencies.rustCrates)
   );
 
@@ -94,20 +93,20 @@ let
 
   shellHooks = {
     base = ''
-        export EDITOR=vim
-        export PAGER=${pkgs.less}/bin/less
-        source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
-        export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
-        git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
-        export MANPATH=${genManPath {deps=dependencies.base;}}
-        '' +
-        # FIXME: whys is this needed?
-        ''
-        source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
+      export EDITOR=vim
+      export PAGER=${pkgs.less}/bin/less
+      source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
+      export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
+      git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
+      export MANPATH=${genManPath {deps=dependencies.base;}}
+      '' +
+      # FIXME: whys is this needed?
+      ''
+      source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
-        export MANPATH=$MANPATH:${genManPath {deps=dependencies.code;}}
-        export hardeningDisable=all
+      export MANPATH=$MANPATH:${genManPath {deps=dependencies.code;}}
+      export hardeningDisable=all
     '';
     rust = ''
       export MANPATH=$MANPATH:${genManPath {deps=dependencies.rust;}}
@@ -185,9 +184,9 @@ in {
   shell_sysoHW0 = let
     in mkShellDerivation rec {
     name = "shell_sysoHW1";
-    buildInputs = with dependencies; 
-        base
-        ++ code
+    buildInputs = with dependencies;
+      base
+      ++ code
     ;
     shellHook = with shellHooks;
       base
