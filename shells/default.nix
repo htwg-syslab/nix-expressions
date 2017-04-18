@@ -39,6 +39,7 @@ let
       with pkgs; [
         pkgconfig
         ncurses ncurses.dev
+        posix_man_pages
         bats
         shellcheck
         python27Full
