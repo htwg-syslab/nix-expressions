@@ -44,6 +44,7 @@ let
         shellcheck
         python27Full
         clang
+        cmake
         lldb
         sublime3
         vscode
