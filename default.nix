@@ -1,15 +1,27 @@
-{ shDrv ? null }:
-let
-  # Untouched but specific nixpkgs
-  shellpkgs = import <shellpkgs> {};
+{ nixpkgs ? import <nixpkgs>{}
+, labshellExpressionsLocal ? builtins.toString ./.
+, labshellExpressionsUpdateFromLocal ? false
+, labshellExpressionsRemoteRepo ? "htwg-syslab/nix-expressions"
+, labshellExpressionsRemoteRev ? "master"
+, labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
+, nixpkgsChannelsRev ? "e019978d027b60440119a5906041991866325621"
+, nixpkgsChannelsSha256 ? "184lp8zknxm2m0p0zxxkmxfr6xqxsp1lxp5rb3zgc4daqdyza84a"
+, nixpkgsChannels ? nixpkgs.fetchFromGitHub {
+    owner = "NixOS";
+    repo = "nixpkgs-channels";
+    rev = nixpkgsChannelsRev;
+    sha256 = nixpkgsChannelsSha256;
+  }
+}:
 
+let
   overrides = callPackage ./pkgs/overrides { };
   shells = callPackage ./shells { };
 
   # config passed to import {}
   config = {
     allowUnfree = true;
-    maxJobs = shellpkgs.lib.mkDefault 5;
+    maxJobs = nixpkgs.lib.mkDefault 5;
 
     packageOverrides = pkgs: with pkgs; rec {
         vscode = pkgs.replaceDependency {
@@ -24,7 +36,7 @@ let
           newDependency = overrides.libxcb_x2go;
         };
 
-        nixshwrap = callPackage ./pkgs/nixshwrap { };
+        labshell = callPackage ./pkgs/labshell { };
 
         configuredPkgs = {
           vim = callPackage ./pkgs/configured/vim-derivates/vim.nix { name = "vim"; };
@@ -42,7 +54,7 @@ let
     platform = { kernelArch = "x86_64"; kernelAutoModules = true; kernelBaseConfig = "defconfig"; kernelHeadersBaseConfig = "defconfig"; kernelTarget = "bzImage"; name = "pc"; uboot = null; };
   };
 
-  rustOverlaySrc = shellpkgs.fetchFromGitHub {
+  rustOverlaySrc = nixpkgs.fetchFromGitHub {
     owner = "htwg-syslab";
     repo = "nixpkgs-mozilla";
     rev = "1eb61fb93ea32d7343efc5f9a53b5e4ab9846390";
@@ -53,21 +65,25 @@ let
     (import "${rustOverlaySrc}/rust-overlay.nix")
   ];
 
-  pkgsFun = import <shellpkgs>;
-  pkgsFunArgs = { inherit config overlays; };
-  pkgs = pkgsFun pkgsFunArgs;
+  pkgsFun = import nixpkgsChannels;
+  shellpkgsFunArgs = { inherit config overlays; };
+  shellpkgs = pkgsFun shellpkgsFunArgs;
 
-  callPackage = pkgs.newScope { 
-    # self import to override old callPackage
-    inherit callPackage;
-
-    inherit (pkgs.stdenv) mkDerivation;
-    inherit shellpkgs;
-    inherit shDrv;
+  callPackage = shellpkgs.newScope {
+    inherit callPackage # self import to override old callPackage
+      shellpkgs
+      nixpkgs
+      labshellExpressionsLocal
+      labshellExpressionsRemoteURL
+      ;
+    inherit (nixpkgs.stdenv) mkDerivation;
   };
 
 in rec {
-  inherit pkgs;
+  inherit (shellpkgs)
+    labshell
+  ;
+
   inherit ( callPackage ./shells { } )
     shell_base
     shell_admin

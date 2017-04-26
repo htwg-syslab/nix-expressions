@@ -11,7 +11,7 @@ pkgs.vim_configurable.customize {
   '' + additionalRC;
 
   vimrcConfig.vam.knownPlugins = pkgs.vimPlugins; # optional
-  vimrcConfig.vam.pluginDictionaries = [{ 
+  vimrcConfig.vam.pluginDictionaries = [{
     # full ducomentation at github.com/MarcWeber/vim-addon-manager
     names = [
       "vim-addon-vim2nix"
