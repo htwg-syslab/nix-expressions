@@ -35,6 +35,13 @@ let
         schedtool
       ];
 
+    admin =
+      with pkgs; [
+        ansible
+        nix-repl
+        nox
+      ];
+
     code =
       with pkgs; [
         pkgconfig
@@ -143,6 +150,19 @@ in {
     name = "shell_code";
     buildInputs = with dependencies;
       base
+      ++ code
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+    ;
+  };
+
+  shell_admin = mkShellDerivation rec {
+    name = "shell_admin";
+    buildInputs = with dependencies;
+      base
+      ++ admin
       ++ code
     ;
     shellHook = with shellHooks;

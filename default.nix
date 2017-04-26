@@ -70,6 +70,7 @@ in rec {
   inherit pkgs;
   inherit ( callPackage ./shells { } )
     shell_base
+    shell_admin
     shell_code
     shell_bsys
     shell_rtos
