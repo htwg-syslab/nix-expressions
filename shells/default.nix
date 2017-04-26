@@ -114,12 +114,16 @@ let
       export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
-      mkdir -p $CARGO_INSTALL_ROOT
+      if [[ ! -d $CARGO_INSTALL_ROOT ]]; then
+        mkdir -p $CARGO_INSTALL_ROOT -m 2770
+      fi
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
       ${genRustCratesCode{}}
 
-      chmod g+w -R $CARGO_INSTALL_ROOT
+      find $CARGO_INSTALL_ROOT \
+        -uid $(id -u) -type d -exec chmod g+sw {} \+ -o \
+        -uid $(id -u) -type f -exec chmod g+w {} \+
     '';
   };
 
