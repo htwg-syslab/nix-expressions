@@ -79,5 +79,4 @@ in rec {
     shell_sysoHW2
     shell_sysoFHS
   ;
-
 }

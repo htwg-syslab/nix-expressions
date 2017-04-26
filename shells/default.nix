@@ -146,7 +146,7 @@ in {
     ;
   };
 
-  shell_code= mkShellDerivation rec {
+  shell_code = mkShellDerivation rec {
     name = "shell_code";
     buildInputs = with dependencies;
       base
@@ -208,7 +208,7 @@ in {
 
   shell_sysoHW0 = let
     in mkShellDerivation rec {
-    name = "shell_sysoHW1";
+    name = "shell_sysoHW0";
     buildInputs = with dependencies;
       base
       ++ code
@@ -241,6 +241,7 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
@@ -272,6 +273,7 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
@@ -294,6 +296,7 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
@@ -316,6 +319,5 @@ in {
     profile = ''
         export LIBRARY_PATH=$LD_LIBRARY_PATH
     '';
-   });
-
+  });
 }
