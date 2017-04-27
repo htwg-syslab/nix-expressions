@@ -9,6 +9,7 @@ LABSHELL_CONFIG_DIR=${HOME}/.config/labshell
 [[ -d ${LABSHELL_CONFIG_DIR} ]] || mkdir -p ${LABSHELL_CONFIG_DIR}
 LOG="${LABSHELL_CONFIG_DIR}"/labshell.sh.$$.log
 
+LABSHELL_SHELL="${LABSHELL_SHELL:-bash}"
 LABSHELL_SCRIPTNAME="$(basename $0 | sed 's,\..*$,,')"
 LABSHELL_SCRIPT="$0"
 LABSHELL_FLAVOR="${LABSHELL_FLAVOR:-base}"
@@ -73,8 +74,8 @@ case ${SCRIPT_ARGINDEX} in
     done < <(sed -n '1d;/^#!LABSHELL.*=.*/s,#!,,p;' ${SCRIPT})
     REAL_INTERP_LINE="$(sed "${i}q;d" ${SCRIPT})"
     if [[ ! ${REAL_INTERP_LINE} =~ ^\#\! ]]; then
-        echo No secondary interpreter provided in ${SCRIPT}. Defaulting to 'bash'
-        REAL_INTERP="bash"
+        REAL_INTERP="${LABSHELL_SHELL}"
+        echo No secondary interpreter provided in ${SCRIPT}. Defaulting to '${REAL_INTERP}'
     else
         REAL_INTERP=${REAL_INTERP_LINE/\#\!/}
     fi
@@ -92,7 +93,7 @@ case ${SCRIPT_ARGINDEX} in
             ;;
     esac
     # Fallback to bash to execute any commands
-    REAL_INTERP=${REAL_INTERP:-bash}
+    REAL_INTERP=${REAL_INTERP:-${LABSHELL_SHELL}}
     ;;
 esac
 
