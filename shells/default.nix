@@ -1,5 +1,6 @@
 { pkgs
 , callPackage
+, prefix
 }:
 
 let
@@ -136,8 +137,9 @@ let
 
 in {
 
-  shell_base = mkShellDerivation rec {
-    name = "shell_base";
+  base = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "base";
     buildInputs = with dependencies;
       base
     ;
@@ -146,8 +148,9 @@ in {
     ;
   };
 
-  shell_code = mkShellDerivation rec {
-    name = "shell_code";
+  code = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "code";
     buildInputs = with dependencies;
       base
       ++ code
@@ -158,8 +161,9 @@ in {
     ;
   };
 
-  shell_admin = mkShellDerivation rec {
-    name = "shell_admin";
+  admin = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "admin";
     buildInputs = with dependencies;
       base
       ++ admin
@@ -171,8 +175,9 @@ in {
     ;
   };
 
-  shell_bsys = mkShellDerivation rec {
-    name = "shell_bsys";
+  bsys = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "bsys";
     buildInputs = with dependencies;
       base
       ++ code
@@ -185,8 +190,9 @@ in {
     ;
   };
 
-  shell_rtos = mkShellDerivation rec {
-    name = "shell_rtos";
+  rtos = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rtos";
     buildInputs =
       (with dependencies;
         base
@@ -206,9 +212,10 @@ in {
     ;
   };
 
-  shell_sysoHW0 = let
+  sysoHW0 = let
     in mkShellDerivation rec {
-    name = "shell_sysoHW0";
+    inherit prefix;
+    flavor = "sysoHW0";
     buildInputs = with dependencies;
       base
       ++ code
@@ -219,12 +226,13 @@ in {
     ;
   };
 
-  shell_sysoHW1 = let
+  sysoHW1 = let
     bbStatic = pkgs.busybox.override {
       enableStatic=true;
     };
     in mkShellDerivation rec {
-    name = "shell_sysoHW1";
+    inherit prefix;
+    flavor = "sysoHW1";
     buildInputs =
       (with dependencies;
         base
@@ -245,7 +253,7 @@ in {
     ;
   };
 
-  shell_sysoHW2 = let
+  sysoHW2 = let
     bbStatic = pkgs.busybox.override {
       enableStatic=true;
     };
@@ -253,7 +261,8 @@ in {
       enableStatic=true;
     };
     in mkShellDerivation rec {
-    name = "shell_sysoHW2";
+    inherit prefix;
+    flavor = "sysoHW2";
     buildInputs =
       (with dependencies;
         base
@@ -277,8 +286,9 @@ in {
     ;
   };
 
-  shell_sysoHW3 = mkShellDerivation rec {
-    name = "shell_sysoHW3";
+  sysoHW3 = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "sysoHW3";
     buildInputs =
       (with dependencies;
         base
@@ -300,8 +310,8 @@ in {
     ;
   };
 
-  shell_sysoFHS = (pkgs.buildFHSUserEnv rec {
-    name = "syso-buildenv";
+  sysoFHS = (pkgs.buildFHSUserEnv rec {
+    flavor = "sysoFHS";
     targetPkgs = pkgs: with pkgs;[
         which
         bashInteractive

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xe
+set -e
 
 scriptdir=$(cd $(dirname $0); pwd)
 source $scriptdir/source.sh

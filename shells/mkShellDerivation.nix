@@ -1,4 +1,5 @@
-{ name
+{ flavor
+, prefix
 , callPackage
 , mkDerivation
 , buildInputs
@@ -10,8 +11,7 @@
 , shellpkgs
 }:
 let
-  flavor = builtins.replaceStrings ["shell_"] [""] name;
-  customLabshell = shellpkgs.labshell.override {
+  customLabshellShell = shellpkgs.labshell.override {
       inherit flavor;
       makeWrapperArgs = ''\
         --set LABSHELL_MODE shell \
@@ -21,8 +21,15 @@ let
       '';
   };
 
+  customLabshellInteractive = shellpkgs.labshell.override {
+      inherit flavor;
+      makeWrapperArgs = ''\
+        --set LABSHELL_FLAVOR ${flavor} \
+      '';
+  };
+
 in mkDerivation {
-  inherit name;
+  name = "${prefix}_${flavor}";
   buildInputs = with shellpkgs; [
     glibcLocales
     makeWrapper
@@ -31,7 +38,7 @@ in mkDerivation {
   phases = "installPhase";
   installPhase = ''
     mkdir -p $out/bin
-    ln -sf ${customLabshell.wrapperPath} $out/bin/
+    ln -sf ${customLabshellInteractive.wrapperPath} $out/bin/
   '';
   shellHookFile = writeTextFile { name = "rcFile"; text = ''
     function exitstatus() {
@@ -64,13 +71,11 @@ in mkDerivation {
     }
 
     export NIX_PATH=shellpkgs=${shellpkgs.path}:nixpkgs=${nixpkgs.path}
-    export LABSHELL_FLAVOR=${flavor}
     export NIX_REMOTE=daemon
-    export LABSHELL_UPDATE=0
-    export LABSHELL_MODE=shell
-    export SHELL=${customLabshell.wrapperPath}
+    export SHELL=${customLabshellShell.wrapperPath}
+    export LABSHELL_FLAVOR_INSTANTIATED=${flavor}
 
-    setPS1 $LABSHELL_FLAVOR
+    setPS1 ${flavor}
 
     export LANG=en_US.UTF-8
     export LC_CTYPE=en_US.UTF-8

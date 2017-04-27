@@ -22,7 +22,7 @@ else
 fi
 
 for f in ${FLAVORS}; do
-  nix_env_cmd+=( "shell_${f}" )
+  nix_env_cmd+=( "labshells.${f}" )
 done
 
 set -x

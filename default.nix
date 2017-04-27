@@ -84,15 +84,7 @@ in rec {
     labshell
   ;
 
-  inherit ( callPackage ./shells { } )
-    shell_base
-    shell_admin
-    shell_code
-    shell_bsys
-    shell_rtos
-    shell_sysoHW0
-    shell_sysoHW1
-    shell_sysoHW2
-    shell_sysoFHS
-  ;
+  labshells = callPackage ./shells {
+    prefix = "labshell";
+  };
 }
