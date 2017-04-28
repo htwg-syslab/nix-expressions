@@ -119,7 +119,9 @@ EOF
 
 LABSHELL_INSTANTIATED_DRV="${LABSHELL_CONFIG_DIR}"/"${LABSHELL_FLAVOR}".drv
 
-nix_common_cmd_args=()
+nix_common_cmd_args=(
+    "--fallback"
+)
 
 if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
     nix_common_cmd_args+=(
