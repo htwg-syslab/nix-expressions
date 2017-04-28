@@ -4,7 +4,6 @@
 , mkDerivation
 , buildInputs
 , shellHook ? ""
-, labshellExpressionsLocal
 , makeWrapper
 , writeTextFile
 , nixpkgs
