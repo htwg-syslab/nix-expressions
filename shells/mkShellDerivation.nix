@@ -14,10 +14,8 @@ let
   customLabshellShell = shellpkgs.labshell.override {
       inherit flavor;
       makeWrapperArgs = ''\
-        --set LABSHELL_MODE shell \
         --set LABSHELL_UPDATE 0 \
         --set LABSHELL_FLAVOR ${flavor} \
-        --unset LABSHELL_EXPRESSIONS_REMOTE_URL
       '';
   };
 

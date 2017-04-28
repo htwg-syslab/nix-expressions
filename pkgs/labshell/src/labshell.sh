@@ -12,7 +12,6 @@ LOG="${LABSHELL_CONFIG_DIR}"/labshell.sh.$$.log
 LABSHELL_SHELL="${LABSHELL_SHELL:-bash}"
 LABSHELL_SCRIPTNAME="$(basename $0 | sed 's,\..*$,,')"
 LABSHELL_SCRIPT="$0"
-LABSHELL_MODE="${LABSHELL_MODE:-interactive}"
 
 function errecho() {
     echo $@ >&2
