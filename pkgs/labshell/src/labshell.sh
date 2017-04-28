@@ -85,12 +85,14 @@ REAL_INTERP=${REAL_INTERP:-${LABSHELL_SHELL}}
 # Assert that we have set the REAL_INTERP
 [[ -n ${REAL_INTERP} ]]
 
-LABSHELL_FLAVOR="${LABSHELL_FLAVOR:-${LABSHELL_FLAVOR_INSTANTIATED}}"
 if [[ ! "${LABSHELL_FLAVOR}" ]]; then
     if [[ "${IN_SHBANG}" -eq 0 && "${@:1:1}" ]]; then
         if [[ ! "${@:2}" ]]; then
             LABSHELL_FLAVOR="${LABSHELL_FLAVOR:-${1}}"
             FLAVOR_IN_ARG1=1
+        elif [[ ${LABSHELL_FLAVOR_INSTANTIATED}} ]]; then
+            LABSHELL_FLAVOR="${LABSHELL_FLAVOR_INSTANTIATED}"
+            echo Inheriting flavor '${LABSHELL_FLAVOR}' from parent shell.
         else
             errecho The flavor could not be evaluated.
             errecho Defaulting to 'base' and passing all arguments along.
