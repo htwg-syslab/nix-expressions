@@ -117,6 +117,14 @@ EOF
 
 LABSHELL_INSTANTIATED_DRV="${LABSHELL_CONFIG_DIR}"/"${LABSHELL_FLAVOR}".drv
 
+nix_common_cmd_args=()
+
+if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
+    nix_common_cmd_args+=(
+        '--argstr' 'labshellExpressionsRemoteURL' "${LABSHELL_EXPRESSIONS_REMOTE_URL}"
+    )
+fi
+
 LABSHELL_UPDATE=${LABSHELL_UPDATE:-1}
 if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; then
     LABSHELL_INSTANTIATE=1
@@ -125,18 +133,14 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
         "--add-root" "${LABSHELL_INSTANTIATED_DRV}"
         "--indirect"
         '-A' "labshells.${LABSHELL_FLAVOR}"
-        '--argstr' 'LABSHELL_EXPRESSIONS_REMOTE_URL' "${LABSHELL_EXPRESSIONS_REMOTE_URL}"
     )
     LABSHELL_INSTANTIATE_FROM="${LABSHELL_EXPRESSIONS_LOCAL}"
 
     if [[ ${LABSHELL_UPDATE} -gt 0 ]]; then
-        if [[ -z "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
-            errecho LABSHELL_EXPRESSIONS_REMOTE_URL not set but LABSHELL_UPDATE=${LABSHELL_UPDATE} requested.
-        else
-
+        if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
             if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" =~ ^/.* ]]; then
                 LABSHELL_INSTANTIATE_FROM="${LABSHELL_EXPRESSIONS_REMOTE_URL}"
-                nix_instantiate_cmd+=(
+                nix_common_cmd_args+=(
                     "--arg" "labshellExpressionsUpdateFromLocal" "true"
                 )
                 echo Using expressions on filesystem ${LABSHELL_EXPRESSIONS_REMOTE_URL}
@@ -155,8 +159,10 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
 
     [[ -n ${LABSHELL_INSTANTIATE_FROM} ]]
 
+
     # Instantiate, this will update the drv link
-    ${nix_instantiate_cmd[@]} ${LABSHELL_INSTANTIATE_FROM}
+    ${nix_instantiate_cmd[@]} ${nix_common_cmd_args[@]} ${LABSHELL_INSTANTIATE_FROM}
+
 fi
 
 
@@ -177,6 +183,7 @@ fi
 nix_shell_cmd=(
     "nix-shell"
     "${LABSHELL_INSTANTIATED_DRV}"
+    ${nix_common_cmd_args[@]}
     ${nix_shell_opts[@]}
     "--no-build-output"
     "--pure"
