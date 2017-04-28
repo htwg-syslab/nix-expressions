@@ -125,6 +125,7 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
         "--add-root" "${LABSHELL_INSTANTIATED_DRV}"
         "--indirect"
         '-A' "labshells.${LABSHELL_FLAVOR}"
+        '--argstr' 'LABSHELL_EXPRESSIONS_REMOTE_URL' "${LABSHELL_EXPRESSIONS_REMOTE_URL}"
     )
     LABSHELL_INSTANTIATE_FROM="${LABSHELL_EXPRESSIONS_LOCAL}"
 
@@ -132,9 +133,6 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
         if [[ -z "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
             errecho LABSHELL_EXPRESSIONS_REMOTE_URL not set but LABSHELL_UPDATE=${LABSHELL_UPDATE} requested.
         else
-            nix_instantiate_cmd+=(
-                '--argstr' 'LABSHELL_EXPRESSIONS_REMOTE_URL' "${LABSHELL_EXPRESSIONS_REMOTE_URL}"
-            )
 
             if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" =~ ^/.* ]]; then
                 LABSHELL_INSTANTIATE_FROM="${LABSHELL_EXPRESSIONS_REMOTE_URL}"
@@ -186,17 +184,23 @@ nix_shell_cmd=(
 )
 
 # Pass the shellhook through to the other shell if it can handle it
-rc=$(mktemp)
-cat > $rc <<-EOF
-rm $rc
-source \$shellHookFile
-echo Environment initialized!
-EOF
-# --init-file must be the first argument
+#rc=$(mktemp)
+#cat > $rc <<-EOF
+#rm $rc
+#source \$shellHookFile
+#echo Environment initialized!
+#EOF
+
 real_interp_array=( ${REAL_INTERP} )
 real_interp_array+=()
-REAL_INTERP="${real_interp_array[@]:0:1} --init-file $rc ${real_interp_array[@]:1}"
-[[ "${REAL_INTERP}" =~ init-file ]]
+if [[ ${REAL_INTERP} =~ (env |/|^)(sh|bash) ]]; then
+    # --init-file must be the first argument
+    rcparam="--init-file \$shellHookFile"
+elif [[ ${REAL_INTERP} =~ (env |/|^)zsh ]]; then
+    rcparam="-d"
+fi
+REAL_INTERP="${real_interp_array[@]:0:1} $rcparam ${real_interp_array[@]:1}"
+[[ "${REAL_INTERP}" =~ "${rcparam}" ]]
 
 #nix_shell_cmd+=("$(for a in "${@:$(( SCRIPT_ARGINDEX+1 ))}"; do printf " %q" "${a}"; done)")
 
