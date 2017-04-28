@@ -199,7 +199,7 @@ nix_shell_cmd=(
 
 real_interp_array=( ${REAL_INTERP} )
 real_interp_array+=()
-if [[ ${REAL_INTERP} =~ (env |/|^)(sh|bash) ]]; then
+if [[ ${REAL_INTERP} =~ (env |/|^)(bash) ]]; then
     # --init-file must be the first argument
     rcparam="--init-file \$shellHookFile"
 elif [[ ${REAL_INTERP} =~ (env |/|^)zsh ]]; then
