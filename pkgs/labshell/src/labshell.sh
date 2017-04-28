@@ -161,7 +161,7 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
 
 
     # Instantiate, this will update the drv link
-    ${nix_instantiate_cmd[@]} ${nix_common_cmd_args[@]} ${LABSHELL_INSTANTIATE_FROM}
+    "${nix_instantiate_cmd[@]}" "${nix_common_cmd_args[@]}" ${LABSHELL_INSTANTIATE_FROM}
 
 fi
 
@@ -182,7 +182,7 @@ fi
 nix_shell_cmd=(
     "nix-shell"
     "${LABSHELL_INSTANTIATED_DRV}"
-    ${nix_common_cmd_args[@]}
+    "${nix_common_cmd_args[@]}"
     ${NIX_SHELL_OPTS}
     "--no-build-output"
     "--pure"
