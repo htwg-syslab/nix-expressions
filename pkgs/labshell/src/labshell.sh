@@ -183,7 +183,7 @@ fi
 nix_shell_cmd=(
     "nix-shell"
     "${LABSHELL_INSTANTIATED_DRV}"
-    ${nix_common_cmd_args[@]}
+#    ${nix_common_cmd_args[@]}
     ${nix_shell_opts[@]}
     "--no-build-output"
     "--pure"
