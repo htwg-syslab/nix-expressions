@@ -167,14 +167,13 @@ fi
 
 
 if [[ "${NIX_SHELL_OPTS}" ]]; then
-    nix_shell_opts=()
     for opt in ${NIX_SHELL_OPTS}; do
         case ${opt} in
             --command)
                 errecho NIX_SHELL_OPTS may not contain ${opt}
+                exit 1
                 ;;
             *)
-                nix_shell_opts=( "${opt}" )
                 ;;
         esac
     done
@@ -184,7 +183,7 @@ nix_shell_cmd=(
     "nix-shell"
     "${LABSHELL_INSTANTIATED_DRV}"
     ${nix_common_cmd_args[@]}
-    ${nix_shell_opts[@]}
+    ${NIX_SHELL_OPTS}
     "--no-build-output"
     "--pure"
     "--command"
