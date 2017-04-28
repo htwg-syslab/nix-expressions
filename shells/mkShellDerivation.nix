@@ -68,7 +68,9 @@ in mkDerivation {
     }
 
     export NIX_PATH=shellpkgs=${shellpkgs.path}:nixpkgs=${nixpkgs.path}
-    export NIX_REMOTE=daemon
+    if [[ -S /nix/var/nix/daemon-socket/socket ]]; then
+      export NIX_REMOTE=daemon
+    fi
     export SHELL=${customLabshellShell.wrapperPath}
     export LABSHELL_FLAVOR_INSTANTIATED=${flavor}
 
