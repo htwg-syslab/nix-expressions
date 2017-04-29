@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -e
+shopt -s extglob
+
 if [[ ${LABSHELL_DEBUG} -gt 0 ]]; then
     set -x
 fi
@@ -9,7 +11,7 @@ LABSHELL_CONFIG_DIR=${HOME}/.config/labshell
 [[ -d ${LABSHELL_CONFIG_DIR} ]] || mkdir -p ${LABSHELL_CONFIG_DIR}
 LOG="${LABSHELL_CONFIG_DIR}"/labshell.sh.$$.log
 
-LABSHELL_SHELL="${LABSHELL_SHELL:-bash}"
+LABSHELL_SHELL="${LABSHELL_SHELL:-/usr/bin/env bash}"
 LABSHELL_SCRIPTNAME="$(basename $0 | sed 's,\..*$,,')"
 LABSHELL_SCRIPT="$0"
 
@@ -201,6 +203,14 @@ nix_shell_cmd=(
 #echo Environment initialized!
 #EOF
 
+# Replace absolute path with calls to known shells
+REAL_INTERP_ARG0=${REAL_INTERP/ */}
+if [[ ${REAL_INTERP_ARG0} != '/usr/bin/env' ]]; then
+    REAL_INTERP_OLD=${REAL_INTERP}
+    REAL_INTERP="${REAL_INTERP/$REAL_INTERP_ARG0//usr/bin/env $(basename $REAL_INTERP_ARG0)}"
+    echo Replacing ${REAL_INTERP_OLD} with ${REAL_INTERP}
+fi
+
 real_interp_array=( ${REAL_INTERP} )
 real_interp_array+=()
 if [[ ${REAL_INTERP} =~ (env |/|^)(bash) ]]; then
@@ -209,7 +219,7 @@ if [[ ${REAL_INTERP} =~ (env |/|^)(bash) ]]; then
 elif [[ ${REAL_INTERP} =~ (env |/|^)zsh ]]; then
     rcparam="-d"
 fi
-REAL_INTERP="${real_interp_array[@]:0:1} $rcparam ${real_interp_array[@]:1}"
+REAL_INTERP="${real_interp_array[@]:0:2} $rcparam ${real_interp_array[@]:2}"
 [[ "${REAL_INTERP}" =~ "${rcparam}" ]]
 
 #nix_shell_cmd+=("$(for a in "${@:$(( SCRIPT_ARGINDEX+1 ))}"; do printf " %q" "${a}"; done)")

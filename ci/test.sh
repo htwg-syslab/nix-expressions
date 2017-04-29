@@ -93,6 +93,16 @@ EOF
     function T {
     cat > $tmpscript <<EOF
 #!/usr/bin/env labshell_${f}
+#!/usr/bin/env bash -xe
+echo $msg
+EOF
+    $tmpscript
+    }
+    runtest "embedded script with interp labshell_$f: real_interp /usr/bin/env /bash -xe; echo msg"
+
+    function T {
+    cat > $tmpscript <<EOF
+#!/usr/bin/env labshell_${f}
 echo $msg
 exit 1
 EOF
