@@ -190,7 +190,14 @@ nix_shell_cmd=(
     "${LABSHELL_INSTANTIATED_DRV}"
     ${nix_common_cmd_args[@]}
     ${NIX_SHELL_OPTS}
-    "--no-build-output"
+)
+
+if [[ ${LABSHELL_DEBUG} -eq 0 ]]; then
+    nix_shell_cmd+=(
+        "--no-build-output"
+    )
+fi
+nix_shell_cmd+=(
     "--pure"
     "--run"
 )

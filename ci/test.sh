@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 msg="Hi, I taste like \${LABSHELL_FLAVOR_INSTANTIATED}"
 tmpscript=$(mktemp); chmod +x $tmpscript
