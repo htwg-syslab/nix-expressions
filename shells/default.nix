@@ -1,6 +1,8 @@
 { pkgs
 , callPackage
 , prefix
+, mkDerivation
+, makeWrapper
 }:
 
 let
@@ -8,10 +10,24 @@ let
 
   rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
 
+  customLesspipe = mkDerivation {
+    name = "lesspipe";
+
+    phases = "installPhase";
+    installPhase = ''
+      set -xe
+      mkdir -p $out
+      cp -r ${pkgs.lesspipe}/* $out/
+      chmod +w $out/bin
+      ln -s lesspipe.sh $out/bin/lesspipe
+      chmod -w $out/bin
+    '';
+  };
+
   dependencies = {
     base =
       with pkgs; [
-        dpkg lesspipe # fix travis errors
+        dpkg customLesspipe
         openssh_with_kerberos
         strace
         file
