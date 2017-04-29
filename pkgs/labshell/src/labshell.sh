@@ -192,7 +192,7 @@ nix_shell_cmd=(
     ${NIX_SHELL_OPTS}
     "--no-build-output"
     "--pure"
-    "--command"
+    "--run"
 )
 
 # Pass the shellhook through to the other shell if it can handle it
