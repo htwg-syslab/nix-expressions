@@ -78,6 +78,10 @@ in mkDerivation {
 
     export LANG=en_US.UTF-8
     export LC_CTYPE=en_US.UTF-8
+
+    if [[ -e ~/.labshellrc ]]; then
+      source ~/.labshellrc
+    fi
   '' + shellHook;
   };
   shellHook = ''
