@@ -45,7 +45,7 @@ exit 42
 EOF
     LABSHELL_COMMAND="$tmpscript $msg" labshell || [[ $? -eq 42 ]]
 }
-    runtest "labshell: LABSHELL_COMMAND script that uses labshell as interpreter with admin flavor"
+    runtest "labshell: LABSHELL_COMMAND script that uses labshell as interpreter with ${flavors[1]} flavor"
 fi
 
 for f in ${FLAVORS}; do

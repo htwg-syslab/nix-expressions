@@ -10,7 +10,7 @@ nix_env_cmd=(
   "-iA" "labshell"
 )
 
-REMOTE_REV="${TRAVIS_PULL_REQUEST_BRANCH:-${TRAVIS_BRANCH}}"
+REMOTE_REV="${REMOTE_REV:-${TRAVIS_PULL_REQUEST_BRANCH:-${TRAVIS_BRANCH}}}"
 if [[ "${REMOTE_REV}" ]]; then
   nix_env_cmd+=(
     "--argstr" "labshellExpressionsRemoteRev" "${REMOTE_REV}"
