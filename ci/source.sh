@@ -7,4 +7,4 @@ else
     expressiondir $0
 fi
 
-export FLAVORS="${FLAVORS:-bsys admin code sysoHW0 sysoHW1 sysoHW2 rtos}"
+export FLAVORS="${FLAVORS:-base bsys admin code sysoHW0 sysoHW1 sysoHW2 rtos}"
