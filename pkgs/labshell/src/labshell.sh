@@ -175,7 +175,7 @@ fi
 if [[ "${NIX_SHELL_OPTS}" ]]; then
     for opt in ${NIX_SHELL_OPTS}; do
         case ${opt} in
-            --command)
+            --command|--run)
                 errecho NIX_SHELL_OPTS may not contain ${opt}
                 exit 1
                 ;;
@@ -194,14 +194,6 @@ nix_shell_cmd=(
     "--pure"
     "--run"
 )
-
-# Pass the shellhook through to the other shell if it can handle it
-#rc=$(mktemp)
-#cat > $rc <<-EOF
-#rm $rc
-#source \$shellHookFile
-#echo Environment initialized!
-#EOF
 
 # Replace absolute path with calls to known shells
 REAL_INTERP_ARG0=${REAL_INTERP/ */}
