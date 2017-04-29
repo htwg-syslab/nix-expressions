@@ -11,6 +11,7 @@ let
   dependencies = {
     base =
       with pkgs; [
+        dpkg lesspipe # fix travis errors
         openssh_with_kerberos
         strace
         file
