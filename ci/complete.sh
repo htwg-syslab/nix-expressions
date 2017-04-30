@@ -10,7 +10,6 @@
 # Don't leave any children behind
 trap "for j in `jobs -p`; do kill -9 \$j; done" EXIT
 
-
 scriptdir=$(cd $(dirname $0); pwd)
 . $scriptdir/source.sh
 setExpressionsDir

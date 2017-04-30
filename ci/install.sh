@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+scriptdir=$(cd $(dirname $0); pwd)
+. $scriptdir/source.sh
+setExpressionsDir
+
 nix_env_cmd=(
   "nix-env"
   "--fallback"
