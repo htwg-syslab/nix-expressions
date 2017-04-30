@@ -184,11 +184,9 @@ in {
     buildInputs = with dependencies;
       base
       ++ admin
-      ++ code
     ;
     shellHook = with shellHooks;
       base
-      + code
     ;
   };
 
