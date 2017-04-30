@@ -218,6 +218,7 @@ cat > $rc <<-EOF
 rm $rc
 source \$shellHookFile
 export LABSHELL_DEBUG=${LABSHELL_DEBUG}
+export LABSHELL_UPDATE=${LABSHELL_UPDATE}
 echo Environment initialized!
 EOF
 
