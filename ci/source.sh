@@ -1,10 +1,16 @@
-#/usr/bin/env  bash
+#!/usr/bin/env bash
 
-function expressiondir(){ export EXPRESSIONS_DIR=$(cd $(dirname $0); pwd)/..;  }
-if [[ $_ != $0 ]]; then
-    expressiondir $_
-else
-    expressiondir $0
-fi
+function setExpressionsDir() {
+    EXPRESSIONS_DIR="${scriptdir}/.."
+    if [[ ! -e ${EXPRESSIONS_DIR}/default.nix ]]; then
+        echo Could not find EXPRESSIONS_DIR
+        exit 1
+    fi
+    export EXPRESSIONS_DIR
+}
+export setExpressionsDir
 
-export FLAVORS="${FLAVORS:-base bsys admin code sysoHW0 sysoHW1 sysoHW2 rtos}"
+function getInstalledLabshellFlavors () {
+    compgen -c labshell_ | sort | sed  's/labshell_//g' | tr '\n' ' '
+}
+export getInstalledLabshellFlavors

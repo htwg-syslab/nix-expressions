@@ -24,6 +24,10 @@ let
     '';
   };
 
+  bbStatic = pkgs.busybox.override {
+    enableStatic=true;
+  };
+
   dependencies = {
     base =
       with pkgs; [
@@ -242,9 +246,6 @@ in {
   };
 
   sysoHW1 = let
-    bbStatic = pkgs.busybox.override {
-      enableStatic=true;
-    };
     in mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW1";
@@ -301,7 +302,7 @@ in {
     ;
   };
 
-  sysoHW3 = mkShellDerivation rec {
+  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW3";
     buildInputs =
@@ -325,8 +326,9 @@ in {
     ;
   };
 
-  sysoFHS = (pkgs.buildFHSUserEnv rec {
+  sysoFHS = { unstable = true; } // (pkgs.buildFHSUserEnv rec {
     flavor = "sysoFHS";
+    name = "${prefix}_${flavor}";
     targetPkgs = pkgs: with pkgs;[
         which
         bashInteractive

@@ -8,6 +8,10 @@ tmpscript=$(mktemp); chmod +x $tmpscript
 trap "rc=$?; [[ ! -e $tmpscript ]] || rm $tmpscript; exit $rc" EXIT
 trap "echo Test $testnr failed; exit $?" ERR
 
+scriptdir=$(cd $(dirname $0); pwd)
+. $scriptdir/source.sh
+FLAVORS="${FLAVORS:-$(getInstalledLabshellFlavors)}"
+
 testnr=-1
 function runtest() {
     (( testnr++ ))

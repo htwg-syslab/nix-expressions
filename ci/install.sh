@@ -21,9 +21,12 @@ else
   )
 fi
 
-for f in ${FLAVORS}; do
-  nix_env_cmd+=( "labshells.${f}" )
-done
+if [[ ${FLAVORS} ]]; then
+  for f in ${FLAVORS}; do
+    nix_env_cmd+=( "labshellsUnstable.${f}" )
+  done
+else
+    nix_env_cmd+=( "labshellsStable" )
+fi
 
-set -x
 "${nix_env_cmd[@]}" "--no-build-output" || "${nix_env_cmd[@]}"

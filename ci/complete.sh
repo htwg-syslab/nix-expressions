@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-set -e
-
-scriptdir=$(cd $(dirname $0); pwd)
-source $scriptdir/source.sh
 
 (
     echo Running dummy background job to prevent CI from killing this script.
@@ -14,7 +10,10 @@ source $scriptdir/source.sh
 # Don't leave any children behind
 trap "for j in `jobs -p`; do kill -9 \$j; done" EXIT
 
-$scriptdir/install.sh
 
-export LABSHELL_DEBUG
+scriptdir=$(cd $(dirname $0); pwd)
+. $scriptdir/source.sh
+setExpressionsDir
+
+$scriptdir/install.sh
 $scriptdir/test.sh

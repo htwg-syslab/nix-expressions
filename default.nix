@@ -79,12 +79,23 @@ let
     inherit (nixpkgs.stdenv) mkDerivation;
   };
 
+  labshellsUnstable = shellpkgs.lib.filterAttrs (k: v:
+      (builtins.isAttrs v)
+    ) (callPackage ./shells { prefix = "labshell"; });
+
+  labshellsStable = shellpkgs.lib.filterAttrs (k: v:
+      (builtins.isAttrs v) && !( (builtins.hasAttr "unstable" v) && v.unstable == true)
+    ) (callPackage ./shells { prefix = "labshell"; });
+
 in rec {
   inherit (shellpkgs)
     labshell
   ;
 
-  labshells = callPackage ./shells {
-    prefix = "labshell";
-  };
+  inherit
+    labshellsStable
+    labshellsUnstable
+  ;
+
+  labshells = labshellsStable;
 }
