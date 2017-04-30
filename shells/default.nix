@@ -9,6 +9,7 @@ let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
   rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+  rustExtendedNightly = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
 
   customLesspipe = mkDerivation {
     name = "lesspipe";
@@ -59,6 +60,7 @@ let
 
     admin =
       with pkgs; [
+        rsync
         ansible
         nix-repl
         nox
