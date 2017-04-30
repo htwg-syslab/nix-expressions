@@ -15,4 +15,6 @@ source $scriptdir/source.sh
 trap "for j in `jobs -p`; do kill -9 \$j; done" EXIT
 
 $scriptdir/install.sh
+
+export LABSHELL_DEBUG
 $scriptdir/test.sh

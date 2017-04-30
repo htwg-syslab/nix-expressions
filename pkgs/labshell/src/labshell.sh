@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
-shopt -s extglob
+
+LABSHELL_DEBUG=${LABSHELL_DEBUG:-0}
 
 if [[ ${LABSHELL_DEBUG} -gt 0 ]]; then
     set -x
@@ -200,7 +201,7 @@ fi
 
 nix_shell_cmd+=(
     "--pure"
-    "--run"
+    "--command"
 )
 
 # Replace absolute path with calls to known shells
@@ -211,11 +212,20 @@ if [[ ${REAL_INTERP_ARG0} != '/usr/bin/env' ]]; then
     echo Replacing ${REAL_INTERP_OLD} with ${REAL_INTERP}
 fi
 
+# Pass the shellhook through to the other shell if it can handle it
+rc=$(mktemp)
+cat > $rc <<-EOF
+rm $rc
+source \$shellHookFile
+export LABSHELL_DEBUG=${LABSHELL_DEBUG}
+echo Environment initialized!
+EOF
+
 real_interp_array=( ${REAL_INTERP} )
 real_interp_array+=()
-if [[ ${REAL_INTERP} =~ (env |/|^)(bash) ]]; then
+if [[ ${REAL_INTERP} =~ (env |/|^)(sh|bash) ]]; then
     # --init-file must be the first argument
-    rcparam="--init-file \$shellHookFile"
+    rcparam="--rcfile $rc -i"
 elif [[ ${REAL_INTERP} =~ (env |/|^)zsh ]]; then
     rcparam="-d"
 fi

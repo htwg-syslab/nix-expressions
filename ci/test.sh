@@ -21,6 +21,7 @@ EOF
 ---- Test ${testnr} failed with code $?---------------------------
 ---- Rerunning with LABSHELL_DEBUG=1 -----------------------------
 EOF
+        set -x
         ( LABSHELL_DEBUG=1 T )
         rc=$?
     cat <<EOF
@@ -34,6 +35,17 @@ function T() {
     ( echo "echo $msg; exit 42" | labshell ) || [[ $? -eq 42 ]]
 }
 runtest "labshell: pipe 'exit 42' to interactive shell without flavor specification"
+
+function T() {
+    cat > $tmpscript <<EOF
+#!/usr/bin/env labshell
+#!/bin/bash -xe
+[[ \${LABSHELL_DEBUG} && \${LABSHELL_DEBUG} -eq 2 ]] || exit 43
+exit 42
+EOF
+    LABSHELL_DEBUG=2 LABSHELL_COMMAND="$tmpscript" labshell || [[ $? -eq 42 ]]
+}
+runtest "labshell: set LABSHELL_DEBUG=2, must be passed through to script called in LABSHELL_COMMAND"
 
 flavors=( ${FLAVORS} )
 if [[ ${#flavors[@]} -ge 2 ]]; then
