@@ -139,7 +139,7 @@ if [[ ! $(stat -L ${LABSHELL_INSTANTIATED_DRV}) || ${LABSHELL_UPDATE} -gt 0 ]]; 
         "nix-instantiate"
         "--add-root" "${LABSHELL_INSTANTIATED_DRV}"
         "--indirect"
-        '-A' "labshells.${LABSHELL_FLAVOR}"
+        '-A' "labshellsUnstable.${LABSHELL_FLAVOR}"
     )
     LABSHELL_INSTANTIATE_FROM="${LABSHELL_EXPRESSIONS_LOCAL}"
 
