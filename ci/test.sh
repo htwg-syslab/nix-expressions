@@ -1,5 +1,6 @@
-#!/usr/bin/env bash
-set -x
+#!/usr/bin/env nix-shell
+#!nix-shell -p bashInteractive
+#!nix-shell -i bash
 
 msg="Hi, I taste like \${LABSHELL_FLAVOR_INSTANTIATED}"
 tmpscript=$(mktemp); chmod +x $tmpscript
