@@ -9,8 +9,10 @@
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
-  rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
-  rustExtendedNightly = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+  rustExtended = {
+    stable = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+    nightly = (pkgs.rustChannels.nightly.rust.override { extensions = [ "rust-src" ]; });
+  };
 
   customLesspipe = mkDerivation {
     name = "lesspipe";
@@ -132,6 +134,7 @@ let
 
     admin =
       with dpkgs; [
+        gist
         rsync
         ansible
         nix-repl
@@ -158,7 +161,11 @@ let
         valgrind
       ];
 
-    rust = [ rustExtended ];
+    rust = {
+        stable = [ rustExtended.stable ];
+        nightly = [ rustExtended.nightly ];
+    };
+
 
     osDevelopment =
       with dpkgs; [
@@ -255,9 +262,9 @@ let
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
     '';
-    rust = ''
-      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust;}}
-      export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
+    rust = ({rustVariant ? "stable"}: ''
+      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
+      export RUST_SRC_PATH=${rustExtended."${rustVariant}"}/lib/rustlib/src/rust/src/
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
       if [[ ! -d $CARGO_INSTALL_ROOT ]]; then
@@ -270,7 +277,7 @@ let
       find $CARGO_INSTALL_ROOT \
         -uid $(id -u) -type d -exec chmod g+sw {} \+ -o \
         -uid $(id -u) -type f -exec chmod g+w {} \+
-    '';
+    '');
 
     cross = ''
       export CROSS_CC=$CC
@@ -328,12 +335,12 @@ let
     buildInputs = with (dependencies{});
       base
       ++ code
-      ++ rust
+      ++ rust.nightly
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + rust {rustVariant="nightly";}
     ;
   };
 
@@ -344,12 +351,12 @@ let
       base
       ++ osDevelopment
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable";})
     ;
   };
 
@@ -377,12 +384,12 @@ let
       ++ linuxDevelopmentStatic
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable";})
     ;
   };
 
@@ -395,12 +402,12 @@ let
       ++ linuxDevelopmentStatic
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable";})
     ;
   };
 
@@ -415,7 +422,7 @@ let
       ++ linuxDevelopment
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
 
     crosspkgs = crossPkgsAarch64LinuxGnu;
@@ -426,7 +433,7 @@ let
     shellHook = with shellHooks;
         base
         + code
-        + rust
+        + (rust {rustVariant="stable";})
         + cross
     ;
   };
