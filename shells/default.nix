@@ -108,8 +108,11 @@ let
         set -e
         CRATE=${b}
         CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
-        cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
-        if [ ! $? -eq 0 ]; then
+        cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
+        rc1=$?
+        ldd $(which $CRATE 2>/dev/null) &>> /dev/null
+        rc2=$?
+        if [[ ! $rc1 -eq 0 || ! $rc2 -eq 0 ]]; then
           cargo install --force --vers $CRATE_VERSION $CRATE
         fi
       ) || exit $?
