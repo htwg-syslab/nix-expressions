@@ -11,7 +11,7 @@ nix_env_cmd=(
   "--file" "${EXPRESSIONS_DIR:-$PWD}"
   "--max-jobs" "2"
   "--cores" "0"
-  "-iA" "labshell"
+  "--no-build-output"
 )
 
 REMOTE_REV="${REMOTE_REV:-${TRAVIS_PULL_REQUEST_BRANCH:-${TRAVIS_BRANCH}}}"
@@ -25,6 +25,14 @@ else
   )
 fi
 
+nix_env_cmd+=(
+  "-iA"
+)
+
+# labshell application
+"${nix_env_cmd[@]}" "labshell" || "${nix_env_cmd[@]}"
+
+# labshell flavored wrappers
 if [[ ${FLAVORS} ]]; then
   for f in ${FLAVORS}; do
     nix_env_cmd+=( "labshellsUnstable.${f}" )
@@ -32,5 +40,4 @@ if [[ ${FLAVORS} ]]; then
 else
     nix_env_cmd+=( "labshellsStable" )
 fi
-
-"${nix_env_cmd[@]}" "--no-build-output" || "${nix_env_cmd[@]}"
+"${nix_env_cmd[@]}" || "${nix_env_cmd[@]}"
