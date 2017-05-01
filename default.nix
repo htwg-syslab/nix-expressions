@@ -6,7 +6,7 @@
 , labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
 , nixpkgsChannelsRev ? "e019978d027b60440119a5906041991866325621"
 , nixpkgsChannelsSha256 ? "184lp8zknxm2m0p0zxxkmxfr6xqxsp1lxp5rb3zgc4daqdyza84a"
-, nixpkgsChannels ? nixpkgs.fetchFromGitHub {
+, nixpkgsChannelsFetched ? nixpkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs-channels";
     rev = nixpkgsChannelsRev;
@@ -65,7 +65,7 @@ let
     (import "${rustOverlaySrc}/rust-overlay.nix")
   ];
 
-  pkgsFun = import nixpkgsChannels;
+  pkgsFun = import nixpkgsChannelsFetched;
   shellpkgsFunArgs = { inherit config overlays; };
   shellpkgs = pkgsFun shellpkgsFunArgs;
 
@@ -73,6 +73,7 @@ let
     inherit callPackage # self import to override old callPackage
       shellpkgs
       nixpkgs
+      nixpkgsChannelsFetched
       labshellExpressionsLocal
       labshellExpressionsRemoteURL
       ;
