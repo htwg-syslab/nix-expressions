@@ -1,19 +1,43 @@
-{ name
+{ flavor
+, prefix
 , callPackage
 , mkDerivation
 , buildInputs
 , shellHook ? ""
+, makeWrapper
+, writeTextFile
+, nixpkgs
 , shellpkgs
-}: 
+}:
 let
-  nixshwrap = callPackage ../pkgs/nixshwrap { shDrvAttr=name; }; 
+  customLabshellShell = shellpkgs.labshell.override {
+      inherit flavor;
+      makeWrapperArgs = ''\
+        --set LABSHELL_UPDATE 0 \
+        --set LABSHELL_FLAVOR ${flavor} \
+      '';
+  };
+
+  customLabshellInteractive = shellpkgs.labshell.override {
+      inherit flavor;
+      makeWrapperArgs = ''\
+        --set LABSHELL_FLAVOR ${flavor} \
+      '';
+  };
 
 in mkDerivation {
-  inherit name;
+  name = "${prefix}_${flavor}";
   buildInputs = with shellpkgs; [
     glibcLocales
+    makeWrapper
+    labshell
   ] ++ buildInputs;
-  shellHook = ''
+  phases = "installPhase";
+  installPhase = ''
+    mkdir -p $out/bin
+    ln -sf ${customLabshellInteractive.wrapperPath} $out/bin/
+  '';
+  shellHookFile = writeTextFile { name = "rcFile"; text = ''
     function exitstatus() {
       if [[ $? -eq 0 ]]; then
         printf '✓'
@@ -42,13 +66,25 @@ in mkDerivation {
         fi
       fi
     }
-    setPS1 $name
-    unset name
-    unset shell
-    export NIX_PATH=shellpkgs=${shellpkgs.path}
-    export NIX_REMOTE=daemon
-    export SHELL=${nixshwrap}/bin/nixshwrap
+
+    export NIX_PATH=shellpkgs=${shellpkgs.path}:nixpkgs=${nixpkgs.path}
+    if [[ -S /nix/var/nix/daemon-socket/socket ]]; then
+      export NIX_REMOTE=daemon
+    fi
+    export SHELL=${customLabshellShell.wrapperPath}
+    export LABSHELL_FLAVOR_INSTANTIATED=${flavor}
+
+    setPS1 ${flavor}
+
     export LANG=en_US.UTF-8
     export LC_CTYPE=en_US.UTF-8
+
+    if [[ -e ~/.labshellrc ]]; then
+      source ~/.labshellrc
+    fi
   '' + shellHook;
+  };
+  shellHook = ''
+    source $shellHookFile
+  '';
 }

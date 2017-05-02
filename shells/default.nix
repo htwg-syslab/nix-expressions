@@ -1,15 +1,38 @@
 { pkgs
 , callPackage
+, prefix
+, mkDerivation
+, makeWrapper
 }:
 
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
   rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+  rustExtendedNightly = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+
+  customLesspipe = mkDerivation {
+    name = "lesspipe";
+
+    phases = "installPhase";
+    installPhase = ''
+      set -xe
+      mkdir -p $out
+      cp -r ${pkgs.lesspipe}/* $out/
+      chmod +w $out/bin
+      ln -s lesspipe.sh $out/bin/lesspipe
+      chmod -w $out/bin
+    '';
+  };
+
+  bbStatic = pkgs.busybox.override {
+    enableStatic=true;
+  };
 
   dependencies = {
     base =
       with pkgs; [
+        dpkg customLesspipe
         openssh_with_kerberos
         strace
         file
@@ -21,6 +44,7 @@ let
         procps
         htop
         configuredPkgs.vim
+        nano
         tmux
         which
         bashInteractive
@@ -33,6 +57,14 @@ let
         tree
         indent
         schedtool
+      ];
+
+    admin =
+      with pkgs; [
+        rsync
+        ansible
+        nix-repl
+        nox
       ];
 
     code =
@@ -78,8 +110,11 @@ let
         set -e
         CRATE=${b}
         CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
-        cargo install --list | grep "$CRATE v$CRATE_VERSION" 2>&1 1>/dev/null
-        if [ ! $? -eq 0 ]; then
+        cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
+        rc1=$?
+        ldd $(which $CRATE 2>/dev/null) &>> /dev/null
+        rc2=$?
+        if [[ ! $rc1 -eq 0 || ! $rc2 -eq 0 ]]; then
           cargo install --force --vers $CRATE_VERSION $CRATE
         fi
       ) || exit $?
@@ -115,19 +150,24 @@ let
       export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
-      mkdir -p $CARGO_INSTALL_ROOT
+      if [[ ! -d $CARGO_INSTALL_ROOT ]]; then
+        mkdir -p $CARGO_INSTALL_ROOT -m 2770
+      fi
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
       ${genRustCratesCode{}}
 
-      chmod g+w -R $CARGO_INSTALL_ROOT
+      find $CARGO_INSTALL_ROOT \
+        -uid $(id -u) -type d -exec chmod g+sw {} \+ -o \
+        -uid $(id -u) -type f -exec chmod g+w {} \+
     '';
   };
 
 in {
 
-  shell_base = mkShellDerivation rec {
-    name = "shell_base";
+  base = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "base";
     buildInputs = with dependencies;
       base
     ;
@@ -136,8 +176,9 @@ in {
     ;
   };
 
-  shell_code= mkShellDerivation rec {
-    name = "shell_code";
+  code = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "code";
     buildInputs = with dependencies;
       base
       ++ code
@@ -148,8 +189,21 @@ in {
     ;
   };
 
-  shell_bsys = mkShellDerivation rec {
-    name = "shell_bsys";
+  admin = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "admin";
+    buildInputs = with dependencies;
+      base
+      ++ admin
+    ;
+    shellHook = with shellHooks;
+      base
+    ;
+  };
+
+  bsys = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "bsys";
     buildInputs = with dependencies;
       base
       ++ code
@@ -162,8 +216,9 @@ in {
     ;
   };
 
-  shell_rtos = mkShellDerivation rec {
-    name = "shell_rtos";
+  rtos = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rtos";
     buildInputs =
       (with dependencies;
         base
@@ -183,9 +238,10 @@ in {
     ;
   };
 
-  shell_sysoHW0 = let
+  sysoHW0 = let
     in mkShellDerivation rec {
-    name = "shell_sysoHW1";
+    inherit prefix;
+    flavor = "sysoHW0";
     buildInputs = with dependencies;
       base
       ++ code
@@ -196,12 +252,10 @@ in {
     ;
   };
 
-  shell_sysoHW1 = let
-    bbStatic = pkgs.busybox.override {
-      enableStatic=true;
-    };
+  sysoHW1 = let
     in mkShellDerivation rec {
-    name = "shell_sysoHW1";
+    inherit prefix;
+    flavor = "sysoHW1";
     buildInputs =
       (with dependencies;
         base
@@ -218,10 +272,11 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
-  shell_sysoHW2 = let
+  sysoHW2 = let
     bbStatic = pkgs.busybox.override {
       enableStatic=true;
     };
@@ -229,7 +284,8 @@ in {
       enableStatic=true;
     };
     in mkShellDerivation rec {
-    name = "shell_sysoHW2";
+    inherit prefix;
+    flavor = "sysoHW2";
     buildInputs =
       (with dependencies;
         base
@@ -249,11 +305,13 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
-  shell_sysoHW3 = mkShellDerivation rec {
-    name = "shell_sysoHW3";
+  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "sysoHW3";
     buildInputs =
       (with dependencies;
         base
@@ -271,11 +329,13 @@ in {
     shellHook = with shellHooks;
         base
         + code
+        + rust
     ;
   };
 
-  shell_sysoFHS = (pkgs.buildFHSUserEnv rec {
-    name = "syso-buildenv";
+  sysoFHS = { unstable = true; } // (pkgs.buildFHSUserEnv rec {
+    flavor = "sysoFHS";
+    name = "${prefix}_${flavor}";
     targetPkgs = pkgs: with pkgs;[
         which
         bashInteractive
@@ -293,6 +353,5 @@ in {
     profile = ''
         export LIBRARY_PATH=$LD_LIBRARY_PATH
     '';
-   });
-
+  });
 }
