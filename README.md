@@ -295,7 +295,8 @@ The following example assumes `$PWD` is the path of the git repository.
     1. Use a local build of the labshell wrapper:
         ```bash
         steveej@steveej-laptop ✓ ~/src/htwg-syslab/nix-expressions
-        $ nix-build -A labshell --arg labshellExpressionsUpdateFromLocal true/nix/store/a8893zppmlb75lmir7czfr3mkb2r0qla-labshell
+        $ nix-build -A labshell --arg labshellExpressionsUpdateFromLocal true
+        /nix/store/a8893zppmlb75lmir7czfr3mkb2r0qla-labshell
         steveej@steveej-laptop ✓ ~/src/htwg-syslab/nix-expressions
         $ ./result/bin/labshell
         Spawning shell with settings:
