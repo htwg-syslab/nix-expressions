@@ -276,8 +276,8 @@ For development the repository needs to be cloned locally.
 
 ### 1.6.1. Clone Repository
 ```bash
-git clone git@github.com:htwg-syslab/nix-expressions.git
-pushd nix-expressions
+$ git clone git@github.com:htwg-syslab/nix-expressions.git
+$ pushd nix-expressions
 ```
 
 ### 1.6.2. Test changes to a shell derivation
