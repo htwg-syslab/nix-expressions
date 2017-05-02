@@ -44,6 +44,7 @@ let
         procps
         htop
         configuredPkgs.vim
+        nano
         tmux
         which
         bashInteractive
