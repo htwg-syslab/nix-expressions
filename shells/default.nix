@@ -40,6 +40,7 @@ let
         less
         curl
         pstree
+        fasd
         psmisc
         procps
         htop
