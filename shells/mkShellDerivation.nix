@@ -1,13 +1,14 @@
 { flavor
 , prefix
 , callPackage
-, mkDerivation
 , buildInputs
 , shellHook ? ""
 , makeWrapper
 , writeTextFile
 , nixpkgs
 , shellpkgs
+, crosspkgs ? null
+, crossBuildInputs ? null
 }:
 let
   customLabshellShell = shellpkgs.labshell.override {
@@ -25,13 +26,30 @@ let
       '';
   };
 
+  nativeBuildInputs = with shellpkgs; [
+      glibcLocales
+      makeWrapper
+      labshell
+    ]
+      ++
+    buildInputs
+  ;
+
+  mkDerivation = if crosspkgs != null
+    then crosspkgs.stdenv.mkDerivation
+    else shellpkgs.stdenv.mkDerivation;
+
 in mkDerivation {
   name = "${prefix}_${flavor}";
-  buildInputs = with shellpkgs; [
-    glibcLocales
-    makeWrapper
-    labshell
-  ] ++ buildInputs;
+
+  inherit nativeBuildInputs;
+  buildInputs =
+    if crossBuildInputs != null then
+      crossBuildInputs
+    else
+      nativeBuildInputs
+  ;
+
   phases = "installPhase";
   installPhase = ''
     mkdir -p $out/bin
