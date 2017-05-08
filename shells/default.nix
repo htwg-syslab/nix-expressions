@@ -385,7 +385,7 @@ in {
 
 
 
-  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
+  sysoHW3 = mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW3";
 
