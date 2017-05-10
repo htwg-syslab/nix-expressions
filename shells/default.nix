@@ -456,4 +456,7 @@ let
   }; # shellDerivations }
 
 in shellDerivations // {
+  sysoHW4 = shellDerivations.sysoHW3.override {
+    flavor = "sysoHW4";
+  };
 }
