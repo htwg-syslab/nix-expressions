@@ -26,10 +26,6 @@ let
     '';
   };
 
-  bbStatic = pkgs.busybox.override {
-    enableStatic=true;
-  };
-
   crossPkgsArmv7aLinuxGnueabihf = ({ pkgsPath }:
     let
       kernelConfig = "defconfig";
@@ -102,9 +98,9 @@ let
       };
     in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
 
-  dependencies = {
+  dependencies = ({ dpkgs ? pkgs }: {
     base =
-      with pkgs; [
+      with dpkgs; [
         dpkg customLesspipe
         openssh_with_kerberos
         strace
@@ -134,7 +130,7 @@ let
       ];
 
     admin =
-      with pkgs; [
+      with dpkgs; [
         rsync
         ansible
         nix-repl
@@ -142,7 +138,7 @@ let
       ];
 
     code =
-      with pkgs; [
+      with dpkgs; [
         pkgconfig
         ncurses ncurses.dev
         posix_man_pages
@@ -163,27 +159,66 @@ let
 
     rust = [ rustExtended ];
 
-    cpp =
-      (with pkgs;[
+    osDevelopment =
+      with dpkgs; [
+        qemu
+        grub
+        nasm
+      ];
+
+    linuxDevelopment =
+      with dpkgs; [
+        linuxPackages.kernel.buildInputs
+        busybox.buildInputs
+        dropbear.buildInputs
+
+        zlib zlib.dev
+        ncurses ncurses.dev
+      ];
+
+    linuxDevelopmentTools =
+      with dpkgs; [
+        qemu
+        cpio
+        pax-utils
+
+        linuxPackages.kernel.nativeBuildInputs
         busybox.nativeBuildInputs
-      ]);
-    cpp-embedded =
-      (with pkgs;[
-      ]);
+        dropbear.nativeBuildInputs
+      ];
+
+    linuxDevelopmentStatic = let
+      bbStatic = dpkgs.busybox.override {
+        enableStatic=true;
+      };
+
+      dbStatic = dpkgs.dropbear.override {
+        enableStatic=true;
+      };
+     in 
+      with dpkgs; [
+        glibc # FIXME: why is this needed for busybox to build?
+        glibc.static
+        zlib.static
+        bbStatic.nativeBuildInputs
+        bbStatic.buildInputs
+        dbStatic.nativeBuildInputs
+        dbStatic.buildInputs
+      ];
 
     rustCrates = {
       racer = "2.0.6";
       rustfmt = "0.8.3";
       rustsym = "0.3.1";
     };
-  };
+  });
 
   genRustCratesCode = ({}:
     builtins.foldl' (a: b:
       a + ''(
         set -e
         CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b dependencies.rustCrates}
+        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates}
         cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
         rc1=$?
         ldd $(which $CRATE 2>/dev/null) &>> /dev/null
@@ -193,7 +228,7 @@ let
         fi
       ) || exit $?
       ''
-    ) "" (builtins.attrNames dependencies.rustCrates)
+    ) "" (builtins.attrNames (dependencies{}).rustCrates)
   );
 
   genManPath = ({deps}:
@@ -209,18 +244,18 @@ let
       source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
       export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
       git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
-      export MANPATH=${genManPath {deps=dependencies.base;}}
+      export MANPATH=${genManPath {deps=(dependencies{}).base;}}
       '' +
       # FIXME: whys is this needed?
       ''
       source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
-      export MANPATH=$MANPATH:${genManPath {deps=dependencies.code;}}
+      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
     '';
     rust = ''
-      export MANPATH=$MANPATH:${genManPath {deps=dependencies.rust;}}
+      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust;}}
       export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
@@ -237,12 +272,12 @@ let
     '';
   };
 
-in {
+  shellDerivations = {
 
   base = mkShellDerivation rec {
     inherit prefix;
     flavor = "base";
-    buildInputs = with dependencies;
+    buildInputs = with (dependencies{});
       base
     ;
     shellHook = with shellHooks;
@@ -253,7 +288,7 @@ in {
   code = mkShellDerivation rec {
     inherit prefix;
     flavor = "code";
-    buildInputs = with dependencies;
+    buildInputs = with (dependencies{});
       base
       ++ code
     ;
@@ -266,7 +301,7 @@ in {
   admin = mkShellDerivation rec {
     inherit prefix;
     flavor = "admin";
-    buildInputs = with dependencies;
+    buildInputs = with (dependencies{});
       base
       ++ admin
     ;
@@ -278,7 +313,7 @@ in {
   bsys = mkShellDerivation rec {
     inherit prefix;
     flavor = "bsys";
-    buildInputs = with dependencies;
+    buildInputs = with (dependencies{});
       base
       ++ code
       ++ rust
@@ -293,17 +328,11 @@ in {
   rtos = mkShellDerivation rec {
     inherit prefix;
     flavor = "rtos";
-    buildInputs =
-      (with dependencies;
-        base
-        ++ code
-        ++ rust)
-        ++
-      (with pkgs; [
-        qemu
-        grub
-        nasm
-      ])
+    buildInputs = with (dependencies{});
+      base
+      ++ osDevelopment
+      ++ code
+      ++ rust
     ;
     shellHook = with shellHooks;
       base
@@ -316,7 +345,7 @@ in {
     in mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW0";
-    buildInputs = with dependencies;
+    buildInputs = with (dependencies{});
       base
       ++ code
     ;
@@ -330,56 +359,36 @@ in {
     in mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW1";
-    buildInputs =
-      (with dependencies;
-        base
-        ++ code
-        ++ rust)
-        ++
-      (with pkgs; [
-        linuxPackages.kernel.nativeBuildInputs
-        bbStatic.nativeBuildInputs
-        qemu
-        cpio
-      ])
+    buildInputs = with (dependencies{});
+      base
+      ++ linuxDevelopment
+      ++ linuxDevelopmentStatic
+      ++ linuxDevelopmentTools
+      ++ code
+      ++ rust
     ;
     shellHook = with shellHooks;
-        base
-        + code
-        + rust
+      base
+      + code
+      + rust
     ;
   };
 
-  sysoHW2 = let
-    bbStatic = pkgs.busybox.override {
-      enableStatic=true;
-    };
-    dbStatic = pkgs.dropbear.override {
-      enableStatic=true;
-    };
-    in mkShellDerivation rec {
+  sysoHW2 = mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW2";
-    buildInputs =
-      (with dependencies;
-        base
-        ++ code
-        ++ rust)
-        ++
-      (with pkgs; [
-        linuxPackages.kernel.nativeBuildInputs
-        bbStatic.nativeBuildInputs
-        dbStatic.nativeBuildInputs
-        zlib zlib.static glibc glibc.static
-        qemu
-        cpio
-        pax-utils
-      ])
+    buildInputs = with (dependencies{});
+      base
+      ++ linuxDevelopment
+      ++ linuxDevelopmentStatic
+      ++ linuxDevelopmentTools
+      ++ code
+      ++ rust
     ;
     shellHook = with shellHooks;
-        base
-        + code
-        + rust
+      base
+      + code
+      + rust
     ;
   };
 
@@ -389,31 +398,17 @@ in {
     inherit prefix;
     flavor = "sysoHW3";
 
-    buildInputs =
-      (with dependencies;
-        base
-        ++ code
-        ++ rust)
-        ++
-      (with pkgs; [
-        linuxPackages.kernel.nativeBuildInputs
-        linuxPackages.kernel.buildInputs
-        qemu
-        cpio
-        zlib
-      ]) ++
-      []
+    buildInputs = with (dependencies{});
+      base
+      ++ linuxDevelopment
+      ++ linuxDevelopmentTools
+      ++ code
+      ++ rust
     ;
+
     crosspkgs = crossPkgsAarch64LinuxGnu;
-    crossBuildInputs = with crossPkgsAarch64LinuxGnu; [
-        linuxPackages.kernel.nativeBuildInputs
-        linuxPackages.kernel.buildInputs
-        busybox.buildInputs
-        busybox.nativeBuildInputs
-        dropbear.buildInputs
-        dropbear.nativeBuildInputs
-        zlib zlib.dev
-        ncurses ncurses.dev
+    crossBuildInputs = with (dependencies{ dpkgs = crossPkgsAarch64LinuxGnu; }); [
+        linuxDevelopment
     ];
 
     shellHook = with shellHooks;
@@ -444,4 +439,8 @@ in {
         export LIBRARY_PATH=$LD_LIBRARY_PATH
     '';
   });
+
+  }; # shellDerivations }
+
+in shellDerivations // {
 }
