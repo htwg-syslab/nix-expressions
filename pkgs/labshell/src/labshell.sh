@@ -126,6 +126,12 @@ nix_common_cmd_args=(
     "--fallback"
 )
 
+if [[ ${LABSHELL_DEBUG} -ne 0 ]]; then
+    nix_common_cmd_args+=(
+        "--show-trace"
+    )
+fi
+
 if [[ "${LABSHELL_EXPRESSIONS_REMOTE_URL}" ]]; then
     nix_common_cmd_args+=(
         '--argstr' 'labshellExpressionsRemoteURL' "${LABSHELL_EXPRESSIONS_REMOTE_URL}"
