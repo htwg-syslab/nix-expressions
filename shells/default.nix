@@ -155,6 +155,7 @@ let
         gdb
         ddd
         valgrind
+        netcat
       ];
 
     rust = [ rustExtended ];
