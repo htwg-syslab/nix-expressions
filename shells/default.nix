@@ -108,6 +108,7 @@ let
         man
         less
         curl
+        netcat
         pstree
         fasd
         psmisc
@@ -155,7 +156,6 @@ let
         gdb
         ddd
         valgrind
-        netcat
       ];
 
     rust = [ rustExtended ];
@@ -196,7 +196,7 @@ let
       dbStatic = dpkgs.dropbear.override {
         enableStatic=true;
       };
-     in 
+     in
       with dpkgs; [
         glibc # FIXME: why is this needed for busybox to build?
         glibc.static
