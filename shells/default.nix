@@ -162,7 +162,10 @@ let
       ];
 
     rust = {
-        stable = [ rustExtended.stable ];
+        stable = [
+          rustExtended.stable
+          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
+        ];
         nightly = [ rustExtended.nightly ];
     };
 
@@ -215,18 +218,24 @@ let
       ];
 
     rustCrates = {
-      racer = "2.0.6";
-      rustfmt = "0.8.3";
-      rustsym = "0.3.1";
+      base = {
+        racer = "2.0.6";
+        rustfmt = "0.8.3";
+        rustsym = "0.3.1";
+      };
+
+      cross = {
+        xargo = "0.3.7";
+      };
     };
   });
 
-  genRustCratesCode = ({}:
+  genRustCratesCode = ({cratesSet}:
     builtins.foldl' (a: b:
       a + ''(
         set -e
         CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates}
+        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}"}
         cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
         rc1=$?
         ldd $(which $CRATE 2>/dev/null) &>> /dev/null
@@ -236,7 +245,7 @@ let
         fi
       ) || exit $?
       ''
-    ) "" (builtins.attrNames (dependencies{}).rustCrates)
+    ) "" (builtins.attrNames (dependencies{}).rustCrates."${cratesSet}")
   );
 
   genManPath = ({deps}:
@@ -262,7 +271,7 @@ let
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
     '';
-    rust = ({rustVariant ? "stable"}: ''
+    rust = ({rustVariant ? "stable", rustDeps ? [ "base" ]}: ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
       export RUST_SRC_PATH=${rustExtended."${rustVariant}"}/lib/rustlib/src/rust/src/
 
@@ -272,8 +281,11 @@ let
       fi
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
-      ${genRustCratesCode{}}
-
+      '' +
+        builtins.foldl' (a: b:
+          a + (genRustCratesCode{cratesSet=b;})
+        ) "" rustDeps
+      + ''
       find $CARGO_INSTALL_ROOT \
         -uid $(id -u) -type d -exec chmod g+sw {} \+ -o \
         -uid $(id -u) -type f -exec chmod g+w {} \+
@@ -335,12 +347,12 @@ let
     buildInputs = with (dependencies{});
       base
       ++ code
-      ++ rust.nightly
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust {rustVariant="nightly";}
+      + rust {rustVariant="stable";}
     ;
   };
 
@@ -356,7 +368,7 @@ let
     shellHook = with shellHooks;
       base
       + code
-      + (rust {rustVariant="stable";})
+      + (rust {rustVariant="stable"; rustDeps=[ "base" "cross" ];})
     ;
   };
 
@@ -372,7 +384,7 @@ let
     shellHook = with shellHooks;
       base
       + code
-      + (rust {rustVariant="nightly";})
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "cross" ];})
     ;
   };
 
