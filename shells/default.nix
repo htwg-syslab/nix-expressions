@@ -11,7 +11,7 @@ let
 
   rustExtended = {
     stable = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
-    nightly = (pkgs.rustChannels.nightly.rust.override { extensions = [ "rust-src" ]; });
+    nightly = (pkgs.rustChannels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
   };
 
   customLesspipe = mkDerivation {
@@ -357,6 +357,22 @@ let
       base
       + code
       + (rust {rustVariant="stable";})
+    ;
+  };
+
+  rtosNightly = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rtosNightly";
+    buildInputs = with (dependencies{});
+      base
+      ++ osDevelopment
+      ++ code
+      ++ rust.nightly
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly";})
     ;
   };
 
