@@ -360,7 +360,7 @@ let
     ;
   };
 
-  bsysNightly = mkShellDerivation rec {
+  bsysNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "bsysNightly";
     buildInputs = with (dependencies{});
@@ -391,7 +391,7 @@ let
     ;
   };
 
-  rtosNightly = mkShellDerivation rec {
+  rtosNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtosNightly";
     buildInputs = with (dependencies{});
