@@ -227,6 +227,10 @@ let
       cross = {
         xargo = "0.3.7";
       };
+
+      nightly = {
+        clippy = "0.0.133";
+      };
     };
   });
 
@@ -353,6 +357,21 @@ let
       base
       + code
       + rust {rustVariant="stable";}
+    ;
+  };
+
+  bsysNightly = mkShellDerivation rec {
+    inherit prefix;
+    flavor = "bsysNightly";
+    buildInputs = with (dependencies{});
+      base
+      ++ code
+      ++ rust.nightly
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "nightly" ];})
     ;
   };
 
