@@ -9,8 +9,10 @@
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
-  rustExtended = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
-  rustExtendedNightly = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+  rustExtended = {
+    stable = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
+    nightly = (pkgs.rustChannels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
+  };
 
   customLesspipe = mkDerivation {
     name = "lesspipe";
@@ -132,6 +134,7 @@ let
 
     admin =
       with dpkgs; [
+        gist
         rsync
         ansible
         nix-repl
@@ -158,7 +161,14 @@ let
         valgrind
       ];
 
-    rust = [ rustExtended ];
+    rust = {
+        stable = [
+          rustExtended.stable
+          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
+        ];
+        nightly = [ rustExtended.nightly ];
+    };
+
 
     osDevelopment =
       with dpkgs; [
@@ -208,18 +218,28 @@ let
       ];
 
     rustCrates = {
-      racer = "2.0.6";
-      rustfmt = "0.8.3";
-      rustsym = "0.3.1";
+      base = {
+        racer = "2.0.6";
+        rustfmt = "0.8.3";
+        rustsym = "0.3.1";
+      };
+
+      cross = {
+        xargo = "0.3.7";
+      };
+
+      nightly = {
+        clippy = "0.0.133";
+      };
     };
   });
 
-  genRustCratesCode = ({}:
+  genRustCratesCode = ({cratesSet}:
     builtins.foldl' (a: b:
       a + ''(
         set -e
         CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates}
+        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}"}
         cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
         rc1=$?
         ldd $(which $CRATE 2>/dev/null) &>> /dev/null
@@ -229,7 +249,7 @@ let
         fi
       ) || exit $?
       ''
-    ) "" (builtins.attrNames (dependencies{}).rustCrates)
+    ) "" (builtins.attrNames (dependencies{}).rustCrates."${cratesSet}")
   );
 
   genManPath = ({deps}:
@@ -255,9 +275,9 @@ let
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
     '';
-    rust = ''
-      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust;}}
-      export RUST_SRC_PATH="${rustExtended}/lib/rustlib/src/rust/src/"
+    rust = ({rustVariant ? "stable", rustDeps ? [ "base" ]}: ''
+      export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
+      export RUST_SRC_PATH=${rustExtended."${rustVariant}"}/lib/rustlib/src/rust/src/
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
       if [[ ! -d $CARGO_INSTALL_ROOT ]]; then
@@ -265,12 +285,15 @@ let
       fi
       export PATH=$CARGO_INSTALL_ROOT/bin:$PATH
 
-      ${genRustCratesCode{}}
-
+      '' +
+        builtins.foldl' (a: b:
+          a + (genRustCratesCode{cratesSet=b;})
+        ) "" rustDeps
+      + ''
       find $CARGO_INSTALL_ROOT \
         -uid $(id -u) -type d -exec chmod g+sw {} \+ -o \
         -uid $(id -u) -type f -exec chmod g+w {} \+
-    '';
+    '');
 
     cross = ''
       export CROSS_CC=$CC
@@ -328,12 +351,27 @@ let
     buildInputs = with (dependencies{});
       base
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + rust {rustVariant="stable";}
+    ;
+  };
+
+  bsysNightly = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "bsysNightly";
+    buildInputs = with (dependencies{});
+      base
+      ++ code
+      ++ rust.nightly
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "nightly" ];})
     ;
   };
 
@@ -344,12 +382,28 @@ let
       base
       ++ osDevelopment
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable"; rustDeps=[ "base" "cross" ];})
+    ;
+  };
+
+  rtosNightly = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rtosNightly";
+    buildInputs = with (dependencies{});
+      base
+      ++ osDevelopment
+      ++ code
+      ++ rust.nightly
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "cross" ];})
     ;
   };
 
@@ -377,12 +431,12 @@ let
       ++ linuxDevelopmentStatic
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable";})
     ;
   };
 
@@ -395,12 +449,12 @@ let
       ++ linuxDevelopmentStatic
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
     shellHook = with shellHooks;
       base
       + code
-      + rust
+      + (rust {rustVariant="stable";})
     ;
   };
 
@@ -415,7 +469,7 @@ let
       ++ linuxDevelopment
       ++ linuxDevelopmentTools
       ++ code
-      ++ rust
+      ++ rust.stable
     ;
 
     crosspkgs = crossPkgsAarch64LinuxGnu;
@@ -426,7 +480,7 @@ let
     shellHook = with shellHooks;
         base
         + code
-        + rust
+        + (rust {rustVariant="stable";})
         + cross
     ;
   };
