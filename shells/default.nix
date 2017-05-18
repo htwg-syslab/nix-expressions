@@ -153,6 +153,7 @@ let
         cmake
         lldb
         sublime3
+        xsel
         vscode
         atom
         geany-with-vte
@@ -196,6 +197,8 @@ let
         linuxPackages.kernel.nativeBuildInputs
         busybox.nativeBuildInputs
         dropbear.nativeBuildInputs
+
+        kmod
       ];
 
     linuxDevelopmentStatic = let
@@ -398,6 +401,24 @@ let
       base
       ++ osDevelopment
       ++ code
+      ++ rust.nightly
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "cross" ];})
+    ;
+  };
+
+  osdev = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "osdev";
+    buildInputs = with (dependencies{});
+      base
+      ++ osDevelopment
+      ++ code
+      ++ linuxDevelopment
+      ++ linuxDevelopmentTools
       ++ rust.nightly
     ;
     shellHook = with shellHooks;
