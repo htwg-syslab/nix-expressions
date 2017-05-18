@@ -153,6 +153,7 @@ let
         cmake
         lldb
         sublime3
+        xsel
         vscode
         atom
         geany-with-vte
