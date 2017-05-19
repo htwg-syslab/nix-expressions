@@ -182,7 +182,7 @@ let
     osDevelopment =
       with dpkgs; [
         qemu
-        grub
+        grub2
         nasm
       ];
 
@@ -207,6 +207,7 @@ let
         dropbear.nativeBuildInputs
 
         kmod
+        eject # util-linux
       ];
 
     linuxDevelopmentStatic = let
