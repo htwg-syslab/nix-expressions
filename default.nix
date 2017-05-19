@@ -57,8 +57,8 @@ let
   rustOverlaySrc = nixpkgs.fetchFromGitHub {
     owner = "htwg-syslab";
     repo = "nixpkgs-mozilla";
-    rev = "1eb61fb93ea32d7343efc5f9a53b5e4ab9846390";
-    sha256 = "0dplynkwp39npgfs8qcr9731x6rvj4jfn25as209f6g04jq5j1bc";
+    rev = "90d41cd5dd6c31c7bfaaab68dd6f00bae596d742";
+    sha256 = "0cpv969mgv2v8fk6l9s24xq1qphwsvzbhf8fq4v6bkkwssm0kzn6";
   };
 
   overlays = [

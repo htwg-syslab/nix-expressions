@@ -9,9 +9,17 @@
 let
   mkShellDerivation = callPackage ./mkShellDerivation.nix;
 
-  rustExtended = {
-    stable = (pkgs.rustChannels.stable.rust.override { extensions = [ "rust-src" ]; });
-    nightly = (pkgs.rustChannels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
+  rustExtended = rec {
+    channels = {
+      stable = pkgs.rustChannels.stable;
+      nightly = with pkgs.lib.rustLib;
+        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-05-16"; }) {
+          inherit (pkgs) stdenv fetchurl patchelf;
+        };
+    };
+
+    stable = (channels.stable.rust.override { extensions = [ "rust-src" ]; });
+    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
   };
 
   customLesspipe = mkDerivation {
