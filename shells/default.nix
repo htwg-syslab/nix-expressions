@@ -13,7 +13,7 @@ let
     channels = {
       stable = pkgs.rustChannels.stable;
       nightly = with pkgs.lib.rustLib;
-        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-05-19"; }) {
+        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-05-16"; }) {
           inherit (pkgs) stdenv fetchurl patchelf;
         };
     };
