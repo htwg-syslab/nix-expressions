@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 (
     echo Running dummy background job to prevent CI from killing this script.
@@ -8,7 +9,7 @@
     done
 ) &
 # Don't leave any children behind
-trap "for j in `jobs -p`; do kill -9 \$j; done" EXIT
+trap "set +e; for j in `jobs -p`; do kill -9 \$j; done" EXIT
 
 scriptdir=$(cd $(dirname $0); pwd)
 . $scriptdir/source.sh
