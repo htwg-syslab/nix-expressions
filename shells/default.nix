@@ -541,7 +541,10 @@ let
   }; # shellDerivations }
 
 in shellDerivations // {
-  sysoHW4 = shellDerivations.sysoHW3.override {
+  sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
     flavor = "sysoHW4";
+  };
+  sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
+    flavor = "sysoHW5";
   };
 }
