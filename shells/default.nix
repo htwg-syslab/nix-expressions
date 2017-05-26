@@ -184,6 +184,7 @@ let
         qemu
         grub2
         nasm
+        xorriso
       ];
 
     linuxDevelopment =
