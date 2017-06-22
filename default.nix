@@ -4,8 +4,8 @@
 , labshellExpressionsRemoteRepo ? "htwg-syslab/nix-expressions"
 , labshellExpressionsRemoteRev ? "master"
 , labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
-, nixpkgsChannelsRev ? "e019978d027b60440119a5906041991866325621"
-, nixpkgsChannelsSha256 ? "184lp8zknxm2m0p0zxxkmxfr6xqxsp1lxp5rb3zgc4daqdyza84a"
+, nixpkgsChannelsRev ? "d4ef5ac0e962bd6604dda38617c4b98c77a62949"
+, nixpkgsChannelsSha256 ? "0k2vcdl4sayv3ra9kpx0q2q3y7mddd598q4jr3rl896mcpc0grlg"
 , nixpkgsChannelsFetched ? nixpkgs.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs-channels";
