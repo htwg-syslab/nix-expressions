@@ -223,7 +223,7 @@ The flavors that are ultimately available for installation are exposed in the _d
     ``` bash
     REV=sj-improve-labshell-script \
         nix-env -iA labshell \
-        --argstr labshellExpressionsGitHubRev ${REV} \
+        --argstr labshellExpressionsRemoteRev ${REV} \
         -f https://github.com/htwg-syslab/nix-expressions/archive/${REV}.tar.gz
     ```
     _nix-env_ will download and unpack the tar archive and automatically read its _default.nix_ file, and start evaluating the expression _pkgs.labshell_, which is a derivation that installs a labshell wrapper script in the current _PATH_.
