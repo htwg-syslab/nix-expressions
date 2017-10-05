@@ -187,6 +187,7 @@ let
         grub2
         nasm
         xorriso
+        llvm
       ];
 
     linuxDevelopment =
