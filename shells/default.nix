@@ -494,7 +494,7 @@ let
 
 
 
-  sysoHW3 = mkShellDerivation rec {
+  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW3";
 
