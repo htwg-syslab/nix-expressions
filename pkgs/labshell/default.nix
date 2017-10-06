@@ -24,11 +24,11 @@ let
       mkdir -p $out/bin
       echo Wrapping ${src}/pkgs/labshell/src/labshell.sh
       if [[ "${src}" == "/nix/store"* ]]; then
-        cp ${src}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath}
+        cp ${src}/pkgs/labshell/src/labshell.sh $out/labshell.sh
       else 
-        ln -s ${src}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath}
+        ln -s ${src}/pkgs/labshell/src/labshell.sh $out/labshell.sh
       fi
-      wrapProgram $out/${relativeWrapperPath} \
+      makeWrapper $out/labshell.sh $out/${relativeWrapperPath} \
         --no-assert \
         --set LABSHELL_EXPRESSIONS_LOCAL $\{LABSHELL_EXPRESSION_LOCAL:-${labshellExpressionsLocal}\} \
         --set LABSHELL_EXPRESSIONS_REMOTE_URL $\{LABSHELL_EXPRESSIONS_REMOTE_URL:-${labshellExpressionsRemoteURL}\} ${makeWrapperArgs}
