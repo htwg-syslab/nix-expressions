@@ -49,9 +49,9 @@ let
           };
         }).gccCrossStageStatic;
 
-        gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
-          patches = [ ./patches/gdb-allow-change-g-packet.patch ];
-        });
+        # gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
+        #   patches = [ ./patches/gdb-allow-change-g-packet.patch ];
+        # });
     };
 
     system = "x86_64-linux";
