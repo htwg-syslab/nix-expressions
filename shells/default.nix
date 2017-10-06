@@ -391,7 +391,7 @@ let
     ;
   };
 
-  rtos = mkShellDerivation rec {
+  rtos =  { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtos";
     buildInputs = with (dependencies{});
