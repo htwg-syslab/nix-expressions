@@ -22,6 +22,7 @@ let
     installPhase  = ''
       mkdir -p $out/bin
       makeWrapper ${labshellExpressionsLocal}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath} \
+        --no-assert \
         --set LABSHELL_EXPRESSIONS_LOCAL $\{LABSHELL_EXPRESSION_LOCAL:-${labshellExpressionsLocal}\} \
         --set LABSHELL_EXPRESSIONS_REMOTE_URL $\{LABSHELL_EXPRESSIONS_REMOTE_URL:-${labshellExpressionsRemoteURL}\} ${makeWrapperArgs}
     '';
