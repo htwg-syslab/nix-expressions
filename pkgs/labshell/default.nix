@@ -23,7 +23,12 @@ let
     installPhase  = ''
       mkdir -p $out/bin
       echo Wrapping ${src}/pkgs/labshell/src/labshell.sh
-      makeWrapper ${src}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath} \
+      if [[ "${src}" == "/nix/store"* ]]; then
+        cp ${src}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath}
+      else 
+        ln -s ${src}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath}
+      fi
+      wrapProgram $out/${relativeWrapperPath} \
         --no-assert \
         --set LABSHELL_EXPRESSIONS_LOCAL $\{LABSHELL_EXPRESSION_LOCAL:-${labshellExpressionsLocal}\} \
         --set LABSHELL_EXPRESSIONS_REMOTE_URL $\{LABSHELL_EXPRESSIONS_REMOTE_URL:-${labshellExpressionsRemoteURL}\} ${makeWrapperArgs}
