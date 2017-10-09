@@ -138,6 +138,7 @@ let
         tree
         indent
         schedtool
+        nettools
       ];
 
     admin =
@@ -168,6 +169,7 @@ let
         gdb
         ddd
         valgrind
+        meld
       ];
 
     rust = {
