@@ -13,13 +13,13 @@ let
     channels = {
       stable = pkgs.rustChannels.stable;
       nightly = with pkgs.lib.rustLib;
-        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-07-31"; }) {
+        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-13"; }) {
           inherit (pkgs) stdenv fetchurl patchelf;
         };
     };
 
-    stable = (channels.stable.rust.override { extensions = [ "rust-src" ]; });
-    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
+    stable = (channels.stable.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
+    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
   };
 
   customLesspipe = mkDerivation {
@@ -175,7 +175,7 @@ let
     rust = {
         stable = [
           rustExtended.stable
-          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
+#          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
         ];
         nightly = [ rustExtended.nightly ];
     };
@@ -235,17 +235,17 @@ let
 
     rustCrates = {
       base = {
-        racer = "2.0.6";
-        rustfmt = "0.8.3";
-        rustsym = "0.3.1";
+        racer = "2.0.10";
+        rustfmt = "0.9.0";
+        rustsym = "0.3.2";
       };
 
       cross = {
-        xargo = "0.3.7";
+        xargo = "0.3.9";
       };
 
       nightly = {
-        clippy = "0.0.133";
+        clippy = "0.0.165";
       };
     };
   });
