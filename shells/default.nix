@@ -235,17 +235,32 @@ let
 
     rustCrates = {
       base = {
-        racer = "2.0.10";
-        rustfmt = "0.9.0";
-        rustsym = "0.3.2";
+        racer = {
+          version = "2.0.10";
+          binary  = "racer";
+        };
+        rustfmt = {
+          version = "0.9.0";
+          binary = "rustfmt";
+        };
+        rustsym = {
+          version = "0.3.2";
+          binary = "rustsym";
+        };
       };
 
       cross = {
-        xargo = "0.3.9";
+        xargo = {
+          version = "0.3.9";
+          binary = "xargo";
+        };
       };
 
       nightly = {
-        clippy = "0.0.165";
+        clippy = {
+          version = "0.0.165";
+          binary = "cargo-clippy";
+        };
       };
     };
   });
@@ -255,12 +270,14 @@ let
       a + ''(
         set -e
         CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}"}
+        CRATE_BINARY=${(builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}").binary}
+        CRATE_VERSION=${(builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}").version}
         cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
         rc1=$?
-        ldd $(which $CRATE 2>/dev/null) &>> /dev/null
+        ldd $(which $CRATE_BINARY 2>/dev/null) &>> /dev/null
         rc2=$?
         if [[ ! $rc1 -eq 0 || ! $rc2 -eq 0 ]]; then
+          echo Rebuilding $CRATE $CRATE_VERSION
           cargo install --force --vers $CRATE_VERSION $CRATE
         fi
       ) || exit $?
