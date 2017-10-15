@@ -190,6 +190,11 @@ let
         llvm
       ];
 
+    webDevelopment =
+      with dpkgs; [
+        sqlite
+    ];
+
     linuxDevelopment =
       with dpkgs; [
         linuxPackages.kernel.buildInputs
@@ -455,6 +460,22 @@ let
       base
       + code
       + (rust {rustVariant="nightly"; rustDeps=[ "base" "cross" ];})
+    ;
+  };
+
+  rustWebDev = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rustWebDev";
+    buildInputs = with (dependencies{});
+      base
+      ++ code
+      ++ rust.nightly
+      ++ webDevelopment
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "nightly" ];})
     ;
   };
 
