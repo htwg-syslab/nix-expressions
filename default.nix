@@ -4,11 +4,11 @@
 , labshellExpressionsRemoteRepo ? "htwg-syslab/nix-expressions"
 , labshellExpressionsRemoteRev ? "master"
 , labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
-, nixpkgsChannelsRev ? "e019978d027b60440119a5906041991866325621"
-, nixpkgsChannelsSha256 ? "184lp8zknxm2m0p0zxxkmxfr6xqxsp1lxp5rb3zgc4daqdyza84a"
+, nixpkgsChannelsRev ? "f8d1205d4b98771ad12d4868b04717451b27b88b"
+, nixpkgsChannelsSha256 ? "19655w66w2j4cm0y06vzz7wc2f9qynjvcgcwl2yc2cjl8zjdm8gq"
 , nixpkgsChannelsFetched ? nixpkgs.fetchFromGitHub {
-    owner = "NixOS";
-    repo = "nixpkgs-channels";
+    owner = "htwg-syslab";
+    repo = "nixpkgs";
     rev = nixpkgsChannelsRev;
     sha256 = nixpkgsChannelsSha256;
   }
@@ -49,9 +49,9 @@ let
           };
         }).gccCrossStageStatic;
 
-        gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
-          patches = [ ./patches/gdb-allow-change-g-packet.patch ];
-        });
+        # gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
+        #   patches = [ ./patches/gdb-allow-change-g-packet.patch ];
+        # });
     };
 
     system = "x86_64-linux";
@@ -59,10 +59,10 @@ let
   };
 
   rustOverlaySrc = nixpkgs.fetchFromGitHub {
-    owner = "htwg-syslab";
+    owner = "mozilla";
     repo = "nixpkgs-mozilla";
-    rev = "90d41cd5dd6c31c7bfaaab68dd6f00bae596d742";
-    sha256 = "0cpv969mgv2v8fk6l9s24xq1qphwsvzbhf8fq4v6bkkwssm0kzn6";
+    rev = "6179dd876578ca2931f864627598ede16ba6cdef";
+    sha256 = "1lim10a674621zayz90nhwiynlakxry8fyz1x209g9bdm38zy3av";
   };
 
   overlays = [

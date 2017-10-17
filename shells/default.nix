@@ -13,13 +13,13 @@ let
     channels = {
       stable = pkgs.rustChannels.stable;
       nightly = with pkgs.lib.rustLib;
-        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-06-13"; }) {
+        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-13"; }) {
           inherit (pkgs) stdenv fetchurl patchelf;
         };
     };
 
-    stable = (channels.stable.rust.override { extensions = [ "rust-src" ]; });
-    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls" ]; });
+    stable = (channels.stable.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
+    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
   };
 
   customLesspipe = mkDerivation {
@@ -175,7 +175,7 @@ let
     rust = {
         stable = [
           rustExtended.stable
-          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
+#          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
         ];
         nightly = [ rustExtended.nightly ];
     };
@@ -187,7 +187,13 @@ let
         grub2
         nasm
         xorriso
+        llvm
       ];
+
+    webDevelopment =
+      with dpkgs; [
+        sqlite
+    ];
 
     linuxDevelopment =
       with dpkgs; [
@@ -234,17 +240,32 @@ let
 
     rustCrates = {
       base = {
-        racer = "2.0.6";
-        rustfmt = "0.8.3";
-        rustsym = "0.3.1";
+        racer = {
+          version = "2.0.10";
+          binary  = "racer";
+        };
+        rustfmt = {
+          version = "0.9.0";
+          binary = "rustfmt";
+        };
+        rustsym = {
+          version = "0.3.2";
+          binary = "rustsym";
+        };
       };
 
       cross = {
-        xargo = "0.3.7";
+        xargo = {
+          version = "0.3.9";
+          binary = "xargo";
+        };
       };
 
       nightly = {
-        clippy = "0.0.133";
+        clippy = {
+          version = "0.0.165";
+          binary = "cargo-clippy";
+        };
       };
     };
   });
@@ -254,12 +275,14 @@ let
       a + ''(
         set -e
         CRATE=${b}
-        CRATE_VERSION=${builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}"}
+        CRATE_BINARY=${(builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}").binary}
+        CRATE_VERSION=${(builtins.getAttr b (dependencies{}).rustCrates."${cratesSet}").version}
         cargo install --list | grep "$CRATE v$CRATE_VERSION" &>> /dev/null
         rc1=$?
-        ldd $(which $CRATE 2>/dev/null) &>> /dev/null
+        ldd $(which $CRATE_BINARY 2>/dev/null) &>> /dev/null
         rc2=$?
         if [[ ! $rc1 -eq 0 || ! $rc2 -eq 0 ]]; then
+          echo Rebuilding $CRATE $CRATE_VERSION
           cargo install --force --vers $CRATE_VERSION $CRATE
         fi
       ) || exit $?
@@ -390,7 +413,7 @@ let
     ;
   };
 
-  rtos = mkShellDerivation rec {
+  rtos =  { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtos";
     buildInputs = with (dependencies{});
@@ -437,6 +460,22 @@ let
       base
       + code
       + (rust {rustVariant="nightly"; rustDeps=[ "base" "cross" ];})
+    ;
+  };
+
+  rustWebDev = { unstable = true; } // mkShellDerivation rec {
+    inherit prefix;
+    flavor = "rustWebDev";
+    buildInputs = with (dependencies{});
+      base
+      ++ code
+      ++ rust.nightly
+      ++ webDevelopment
+    ;
+    shellHook = with shellHooks;
+      base
+      + code
+      + (rust {rustVariant="nightly"; rustDeps=[ "base" "nightly" ];})
     ;
   };
 
@@ -493,7 +532,7 @@ let
 
 
 
-  sysoHW3 = mkShellDerivation rec {
+  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "sysoHW3";
 

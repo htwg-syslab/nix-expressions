@@ -14,6 +14,7 @@ let
 
     name = "labshell${binarySuffix}";
     version = "0.2.0";
+    src = labshellExpressionsLocal;
     unpackPhase = ":";
     buildInputs = [
       makeWrapper
@@ -21,7 +22,14 @@ let
 
     installPhase  = ''
       mkdir -p $out/bin
-      makeWrapper ${labshellExpressionsLocal}/pkgs/labshell/src/labshell.sh $out/${relativeWrapperPath} \
+      echo Wrapping ${src}/pkgs/labshell/src/labshell.sh
+      if [[ "${src}" == "/nix/store"* ]]; then
+        cp ${src}/pkgs/labshell/src/labshell.sh $out/labshell.sh
+      else 
+        ln -s ${src}/pkgs/labshell/src/labshell.sh $out/labshell.sh
+      fi
+      makeWrapper $out/labshell.sh $out/${relativeWrapperPath} \
+        --no-assert \
         --set LABSHELL_EXPRESSIONS_LOCAL $\{LABSHELL_EXPRESSION_LOCAL:-${labshellExpressionsLocal}\} \
         --set LABSHELL_EXPRESSIONS_REMOTE_URL $\{LABSHELL_EXPRESSIONS_REMOTE_URL:-${labshellExpressionsRemoteURL}\} ${makeWrapperArgs}
     '';
