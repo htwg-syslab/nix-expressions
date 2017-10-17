@@ -35,6 +35,17 @@ EOF
     }
 }
 
+
+if [[ "${RUDIMENTARY}" == "true" ]]; then
+  for f in ${FLAVORS}; do
+      function T() {
+          ( echo "echo $msg; exit 42" | labshell $f ) || [[ $? -eq 42 ]]
+      }
+      runtest "labshell $f: pipe 'exit 42' to interactive shell"
+  done
+  exit 0
+fi
+
 function T() {
     ( echo "echo $msg; exit 42" | labshell ) || [[ $? -eq 42 ]]
 }
