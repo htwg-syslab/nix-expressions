@@ -13,13 +13,32 @@ let
     channels = {
       stable = pkgs.rustChannels.stable;
       nightly = with pkgs.lib.rustLib;
-        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-13"; }) {
+        fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-20"; }) {
           inherit (pkgs) stdenv fetchurl patchelf;
         };
     };
 
-    stable = (channels.stable.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
-    nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
+    stable  = (channels.stable.rust.override { extensions = [
+        "rust-src" "rust-std" "rust-analysis"
+    ];});
+    nightlyMatchingStable = (channels.nightlyMatchingStable.rust.override { extensions= [
+        "rust-src" "rust-std" "rust-analysis" "rls-preview"
+    ];});
+    nightly = (channels.nightly.rust.override { extensions= [
+        "rust-src" "rust-std" "rust-analysis" "rls-preview"
+    ];});
+
+  };
+
+  rlsNightly = mkDerivation {
+    name = "rls-nightly";
+
+    phases = "installPhase";
+    installPhase = ''
+      set -xe
+      mkdir -p $out/bin
+      ln -s ${rustExtended."nightly"}/bin/rls $out/bin/
+    '';
   };
 
   customLesspipe = mkDerivation {
@@ -173,11 +192,13 @@ let
       ];
 
     rust = {
-        stable = [
-          rustExtended.stable
-#          rustExtended.nightly # this will put "rls" in the PATH, everything else will be shadowd
-        ];
-        nightly = [ rustExtended.nightly ];
+      stable = [
+        rlsNightly
+        rustExtended.stable
+      ];
+      nightly = [
+        rustExtended.nightly
+      ];
     };
 
 
@@ -316,6 +337,10 @@ let
     rust = ({rustVariant ? "stable", rustDeps ? [ "base" ]}: ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
       export RUST_SRC_PATH=${rustExtended."${rustVariant}"}/lib/rustlib/src/rust/src/
+
+      # TODO: evaluate if we may need this:
+      # export CARGO_HOME=~/.cargo_"${rustVariant}"
+      # export CARGO_INSTALL_ROOT=/var/tmp/cargo_${rustVariant}
 
       export CARGO_INSTALL_ROOT=/var/tmp/cargo
       if [[ ! -d $CARGO_INSTALL_ROOT ]]; then
