@@ -2,8 +2,6 @@
 , nixpkgsChannelsFetched
 , callPackage
 , prefix
-, mkDerivation
-, makeWrapper
 }:
 
 let
@@ -20,20 +18,6 @@ let
 
     stable = (channels.stable.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
     nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
-  };
-
-  customLesspipe = mkDerivation {
-    name = "lesspipe";
-
-    phases = "installPhase";
-    installPhase = ''
-      set -xe
-      mkdir -p $out
-      cp -r ${pkgs.lesspipe}/* $out/
-      chmod +w $out/bin
-      ln -s lesspipe.sh $out/bin/lesspipe
-      chmod -w $out/bin
-    '';
   };
 
   crossPkgsArmv7aLinuxGnueabihf = ({ pkgsPath }:
