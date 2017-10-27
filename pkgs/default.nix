@@ -11,6 +11,23 @@ in {
      vim = callPackage ./configured/vim-derivates/vim.nix { name = "vim"; };
    };
 
+  vscodePkill = mkDerivation rec {
+    name = "vscodePkill";
+
+    src = writeScript "code_pkill" ''
+      #!${pkgs.bash}/bin/bash
+      ${pkgs.procps}/bin/pkill -9 -u $(id -u) -f vscode/code
+      ${pkgs.vscode}/bin/code
+    '';
+
+    phases = "installPhase";
+    installPhase = ''
+      set -xe
+      mkdir -p $out/bin
+      cp -a ${src} $out/bin/code_pkill
+    '';
+  };
+
   customLesspipe = mkDerivation {
     name = "lesspipe";
 

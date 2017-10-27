@@ -151,6 +151,7 @@ let
         sublime3
         xsel
         vscode
+        vscodePkill
         atom
         geany-with-vte
         gdb

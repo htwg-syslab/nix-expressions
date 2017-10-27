@@ -52,6 +52,7 @@ let
           mkShellDerivation
           labshell
 
+          vscodePkill
           customLesspipe
         ;
     };
