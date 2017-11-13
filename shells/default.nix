@@ -193,6 +193,7 @@ let
     webDevelopment =
       with dpkgs; [
         sqlite
+        postgresql
     ];
 
     linuxDevelopment =
