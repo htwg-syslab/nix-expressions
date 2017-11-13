@@ -21,75 +21,11 @@ let
     nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
   };
 
-  crossPkgsArmv7aLinuxGnueabihf = ({ pkgsPath }:
-    let
-      kernelConfig = "defconfig";
-      pkgs = import pkgsPath {
-        crossSystem = {
-          config = "armv7a-linux-gnueabihf";
-          bigEndian = false;
-          arch = "arm";
-          float = "hard";
-          withTLS = true;
-          libc = "glibc";
-          platform = {
-            name = "arm";
-            kernelMajor = "2.6";
-            kernelBaseConfig = kernelConfig;
-            kernelHeadersBaseConfig = kernelConfig;
-            uboot = null;
-            kernelArch = "arm";
-            kernelAutoModules = false;
-            kernelTarget = "vmlinux.bin";
-          };
-          openssl.system = "linux-generic32";
-          gcc.arch = "armv7-a";
-        };
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
-
-  crossPkgsArmv5LinuxGnueabi = ({ pkgsPath }:
-    let
-      kernelConfig = "defconfig";
-      pkgs = import nixpkgsChannelsFetched {
-        crossSystem = {
-          config = "armv5-linux-gnueabi";
-          bigEndian = false;
-          arch = "armv5";
-          float = "soft";
-          withTLS = true;
-          libc = "glibc";
-          platform = {
-            name = "arm";
-            kernelMajor = "2.6";
-            kernelBaseConfig = kernelConfig;
-            kernelHeadersBaseConfig = kernelConfig;
-            uboot = null;
-            kernelArch = "arm";
-            kernelAutoModules = false;
-            kernelTarget = "vmlinux.bin";
-          };
-          openssl.system = "linux-generic32";
-          gcc.arch = "armv5";
-        };
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
-
   crossPkgsAarch64LinuxGnu = ({ pkgsPath }:
     let
 			platform = (import "${builtins.toString pkgsPath}/lib/systems/platforms.nix").aarch64-multiplatform;
       pkgs = import pkgsPath {
-        crossSystem = {
-          config = "aarch64-linux-gnu";
-          bigEndian = false;
-          arch = "aarch64";
-          float = "hard";
-          withTLS = true;
-          libc = "glibc";
-					inherit platform;
-          inherit (platform) gcc;
-          openssl.system = "linux-generic64";
-        };
+        crossSystem = (import "${builtins.toString pkgsPath}/lib").systems.examples.aarch64-multiplatform;
       };
     in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
 
