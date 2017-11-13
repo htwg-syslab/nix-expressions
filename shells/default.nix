@@ -116,6 +116,8 @@ let
         strace
         file
         man
+        manpages
+        stdmanpages
         less
         curl
         netcat
