@@ -4,8 +4,8 @@
 , labshellExpressionsRemoteRepo ? "htwg-syslab/nix-expressions"
 , labshellExpressionsRemoteRev ? "master"
 , labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
-, nixpkgsChannelsRev ? "f8d1205d4b98771ad12d4868b04717451b27b88b"
-, nixpkgsChannelsSha256 ? "19655w66w2j4cm0y06vzz7wc2f9qynjvcgcwl2yc2cjl8zjdm8gq"
+, nixpkgsChannelsRev ? "ba44a07c63cef713c8c2670e5e124aae0411b206"
+, nixpkgsChannelsSha256 ? "0ngfdh4jx19w60rfhrj9dm3fwcqk4m303sn8sm82kdjn3igbyqyl"
 , nixpkgsChannelsFetched ? nixpkgs.fetchFromGitHub {
     owner = "htwg-syslab";
     repo = "nixpkgs";
@@ -46,6 +46,13 @@ let
         # gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
         #   patches = [ ./patches/gdb-allow-change-g-packet.patch ];
         # });
+
+        # guile 2.2 doesn't cross compile. See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=28920
+        guile = pkgs.guile_2_0;
+
+        # We really don't need libapparmor and it is a pain to cross compile due to
+        # its perl bindings
+        systemd = pkgs.systemd.override { libapparmor = null; };
 
         inherit (callPackage ./pkgs { })
           configuredPkgs
