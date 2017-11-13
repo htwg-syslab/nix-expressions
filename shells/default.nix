@@ -152,6 +152,7 @@ let
 
     code =
       with dpkgs; [
+        ccache
         pkgconfig
         ncurses ncurses.dev
         posix_man_pages
