@@ -99,6 +99,11 @@ for f in ${FLAVORS}; do
     runtest "labshell_$f called with echo msg"
 
     function T() {
+        labshell_${f} -c "man --where procfs; man --where vmstat"
+    }
+    runtest "labshell_$f find common manpages"
+
+    function T() {
     cat > $tmpscript <<EOF
 #!/usr/bin/env labshell
 #!LABSHELL_FLAVOR=${f}

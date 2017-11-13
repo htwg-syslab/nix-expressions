@@ -116,6 +116,8 @@ let
         strace
         file
         man
+        manpages
+        stdmanpages
         less
         curl
         netcat
@@ -293,9 +295,26 @@ let
   );
 
   genManPath = ({deps}:
-    builtins.foldl' (a: b:
-        a + ":${b}/share/man"
-    ) "" (deps)
+    mkDerivation rec {
+      name = "manpath";
+
+      manpaths = builtins.foldl' (a: b:
+          a + " ${b}/share/man"
+      ) "" (deps);
+
+      phases = "installPhase";
+      installPhase = ''
+        set -e
+        mkdir -p $out
+        for m in $manpaths; do
+          for mdirabs in $m/*; do
+            mdir=$(basename $mdirabs)
+            mkdir -p $out/$mdir
+            ln -sf $mdirabs/* $out/$mdir/
+          done
+        done
+      '';
+    }
   );
 
   shellHooks = {
