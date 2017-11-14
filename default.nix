@@ -36,12 +36,6 @@ let
           newDependency = overrides.libxcb_x2go;
         };
 
-        labshell = callPackage ./pkgs/labshell { };
-
-        configuredPkgs = {
-          vim = callPackage ./pkgs/configured/vim-derivates/vim.nix { name = "vim"; };
-        };
-
         gccCrossArmNoneEabi = (pkgsFun {
           crossSystem = {
             config = "arm-none-eabi";
@@ -52,6 +46,15 @@ let
         # gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
         #   patches = [ ./patches/gdb-allow-change-g-packet.patch ];
         # });
+
+        inherit (callPackage ./pkgs { })
+          configuredPkgs
+          mkShellDerivation
+          labshell
+
+          vscodePkill
+          customLesspipe
+        ;
     };
 
     system = "x86_64-linux";
