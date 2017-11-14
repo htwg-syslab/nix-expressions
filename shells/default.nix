@@ -2,6 +2,7 @@
 , nixpkgsChannelsFetched
 , callPackage
 , prefix
+, mkDerivation
 }:
 
 let
