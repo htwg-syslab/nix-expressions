@@ -277,10 +277,6 @@ let
     '');
 
     cross = ''
-      export CROSS_CC=$CC
-      export CROSS_CXX=$CXX
-      export CXX=g++
-      export CC=gcc
       PATH_CROSS=$(echo $PATH | tr ':' '\n' | grep $(echo $crossConfig | cut -d'-' -f1 )| tr '\n' ':')
       PATH_NATIVE=$(echo $PATH | tr ':' '\n' | grep -v $(echo $crossConfig | cut -d'-' -f1 )| tr '\n' ':')
       export PATH=$PATH_NATIVE:$PATH_CROSS
