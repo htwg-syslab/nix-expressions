@@ -1,5 +1,6 @@
-{ pkgs
+{ nixpkgs
 , nixpkgsChannelsFetched
+, shellpkgs
 , callPackage
 , prefix
 , mkDerivation
@@ -10,10 +11,10 @@ let
 
   rustExtended = rec {
     channels = {
-      stable = pkgs.rustChannels.stable;
-      nightly = with pkgs.lib.rustLib;
+      stable = shellpkgs.rustChannels.stable;
+      nightly = with shellpkgs.lib.rustLib;
         fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-13"; }) {
-          inherit (pkgs) stdenv fetchurl patchelf;
+          inherit (shellpkgs) stdenv fetchurl patchelf;
         };
     };
 
@@ -29,7 +30,7 @@ let
       };
     in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
 
-  dependencies = ({ dpkgs ? pkgs }: {
+  dependencies = ({ dpkgs ? shellpkgs }: {
     base =
       with dpkgs; [
         dpkg customLesspipe
@@ -242,15 +243,15 @@ let
   shellHooks = {
     base = ''
       export EDITOR=vim
-      export PAGER=${pkgs.less}/bin/less
-      source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
-      export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
+      export PAGER=${shellpkgs.less}/bin/less
+      source ${shellpkgs.bash-completion}/etc/profile.d/bash_completion.sh
+      export GIT_SSH=${shellpkgs.openssh_with_kerberos}/bin/ssh
       git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
       export MANPATH=${genManPath {deps=(dependencies{}).base;}}
       '' +
       # FIXME: whys is this needed?
       ''
-      source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
+      source ${shellpkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
@@ -496,7 +497,7 @@ let
     ;
   };
 
-  sysoFHS = { unstable = true; } // (pkgs.buildFHSUserEnv rec {
+  sysoFHS = { unstable = true; } // (shellpkgs.buildFHSUserEnv rec {
     flavor = "sysoFHS";
     name = "${prefix}_${flavor}";
     targetPkgs = pkgs: with pkgs;[
