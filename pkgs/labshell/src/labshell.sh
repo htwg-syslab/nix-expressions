@@ -80,8 +80,8 @@ if [[ ${IN_SHBANG} -eq 1 ]]; then
     if [[ ${REAL_INTERP_LINE} =~ ^\#\! ]]; then
         REAL_INTERP=${REAL_INTERP_LINE/\#\!/}
     else
-        echo No secondary interpreter provided in ${SCRIPT}. Defaulting to ${REAL_INTERP}
         REAL_INTERP="${LABSHELL_SHELL}"
+        echo No secondary interpreter provided in ${SCRIPT}. Defaulting to ${REAL_INTERP}
     fi
 fi
 REAL_INTERP=${REAL_INTERP:-${LABSHELL_SHELL}}
@@ -109,7 +109,7 @@ if [[ ! ${LABSHELL_FLAVOR} ]]; then
     errecho Defaulting to 'base' and passing all arguments along.
     LABSHELL_FLAVOR="base"
 elif ! [[ "${LABSHELL_FLAVOR}" =~ ^[[:alnum:]]+$ ]]; then
-    errecho LABSHELL_FLAVOR must be set and must only contain letters
+    errecho LABSHELL_FLAVOR must be set and must only contain alphanumeric characters
     exit 1
 fi
 
