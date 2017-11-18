@@ -7,7 +7,7 @@
 , writeTextFile
 , nixpkgs
 , shellpkgs
-, crosspkgs ? null
+, shellcrosspkgs ? null
 , crossBuildInputs ? null
 }:
 let
@@ -35,8 +35,8 @@ let
     buildInputs
   ;
 
-  mkDerivation = if crosspkgs != null
-    then crosspkgs.stdenv.mkDerivation
+  mkDerivation = if shellcrosspkgs != null
+    then shellcrosspkgs.stdenv.mkDerivation
     else shellpkgs.stdenv.mkDerivation;
 
 in mkDerivation {

@@ -4,8 +4,8 @@
 , labshellExpressionsRemoteRepo ? "htwg-syslab/nix-expressions"
 , labshellExpressionsRemoteRev ? "master"
 , labshellExpressionsRemoteURL ? if labshellExpressionsUpdateFromLocal then labshellExpressionsLocal else "https://github.com/${labshellExpressionsRemoteRepo}/archive/${labshellExpressionsRemoteRev}.tar.gz"
-, nixpkgsChannelsRev ? "ba44a07c63cef713c8c2670e5e124aae0411b206"
-, nixpkgsChannelsSha256 ? "0ngfdh4jx19w60rfhrj9dm3fwcqk4m303sn8sm82kdjn3igbyqyl"
+, nixpkgsChannelsRev ? "f8d1205d4b98771ad12d4868b04717451b27b88b"
+, nixpkgsChannelsSha256 ? "19655w66w2j4cm0y06vzz7wc2f9qynjvcgcwl2yc2cjl8zjdm8gq"
 , nixpkgsChannelsFetched ? nixpkgs.fetchFromGitHub {
     owner = "htwg-syslab";
     repo = "nixpkgs";
@@ -18,56 +18,6 @@ let
   overrides = callPackage ./pkgs/overrides { };
   shells = callPackage ./shells { };
 
-  # config passed to import {}
-  config = {
-    allowUnfree = true;
-    maxJobs = nixpkgs.lib.mkDefault 5;
-
-    packageOverrides = pkgs: with pkgs; rec {
-        vscode = pkgs.replaceDependency {
-          drv = pkgs.vscode;
-          oldDependency = pkgs.xorg.libxcb;
-          newDependency = overrides.libxcb_x2go;
-        };
-
-        atom = pkgs.replaceDependency {
-          drv = pkgs.atom;
-          oldDependency = pkgs.xorg.libxcb;
-          newDependency = overrides.libxcb_x2go;
-        };
-
-        gccCrossArmNoneEabi = (pkgsFun {
-          crossSystem = {
-            config = "arm-none-eabi";
-            libc = null;
-          };
-        }).gccCrossStageStatic;
-
-        # gdb = pkgs.gdb.overrideDerivation (oldAttrs: {
-        #   patches = [ ./patches/gdb-allow-change-g-packet.patch ];
-        # });
-
-        # guile 2.2 doesn't cross compile. See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=28920
-        guile = pkgs.guile_2_0;
-
-        # We really don't need libapparmor and it is a pain to cross compile due to
-        # its perl bindings
-        systemd = pkgs.systemd.override { libapparmor = null; };
-
-        inherit (callPackage ./pkgs { })
-          configuredPkgs
-          mkShellDerivation
-          labshell
-
-          vscodePkill
-          customLesspipe
-        ;
-    };
-
-    system = "x86_64-linux";
-    platform = { kernelArch = "x86_64"; kernelAutoModules = true; kernelBaseConfig = "defconfig"; kernelHeadersBaseConfig = "defconfig"; kernelTarget = "bzImage"; name = "pc"; uboot = null; };
-  };
-
   rustOverlaySrc = nixpkgs.fetchFromGitHub {
     owner = "mozilla";
     repo = "nixpkgs-mozilla";
@@ -75,30 +25,106 @@ let
     sha256 = "1lim10a674621zayz90nhwiynlakxry8fyz1x209g9bdm38zy3av";
   };
 
-  overlays = [
-    (import "${rustOverlaySrc}/rust-overlay.nix")
-  ];
+  pkgsImportFunc = ({ nixpkgs
+      , pkgsPath
+      , additionalOverrides ? ({...}: {})
+    }:
+    let
+      # config passed to import {}
+      config = {
+        allowUnfree = true;
+        maxJobs = nixpkgs.lib.mkDefault 5;
 
-  pkgsFun = import nixpkgsChannelsFetched;
-  shellpkgsFunArgs = { inherit config overlays; };
-  shellpkgs = pkgsFun shellpkgsFunArgs;
+        packageOverrides = pkgs: with pkgs; rec {
+          inherit (callPackage ./pkgs { })
+            configuredPkgs
+            labshell
+
+            vscodePkill
+            customLesspipe
+          ;
+
+          mkShellDerivation = callPackage ./shells/mkShellDerivation.nix;
+
+          vscode = pkgs.replaceDependency {
+            drv = pkgs.vscode;
+            oldDependency = pkgs.xorg.libxcb;
+            newDependency = overrides.libxcb_x2go;
+          };
+
+          atom = pkgs.replaceDependency {
+            drv = pkgs.atom;
+            oldDependency = pkgs.xorg.libxcb;
+            newDependency = overrides.libxcb_x2go;
+          };
+
+        } // additionalOverrides { inherit pkgs; };
+
+        system = "x86_64-linux";
+        platform = { kernelArch = "x86_64"; kernelAutoModules = true; kernelBaseConfig = "defconfig"; kernelHeadersBaseConfig = "defconfig"; kernelTarget = "bzImage"; name = "pc"; uboot = null; };
+      };
+      overlays = [
+        (import "${rustOverlaySrc}/rust-overlay.nix")
+      ];
+    in
+      import pkgsPath { inherit config overlays; }
+  );
+
+  shellpkgs = pkgsImportFunc {
+    inherit nixpkgs;
+    pkgsPath = nixpkgsChannelsFetched;
+  };
+
+  shellpkgsCrossFixedFetched =
+    nixpkgs.fetchFromGitHub {
+      owner = "htwg-syslab";
+      repo = "nixpkgs";
+      rev = "ba44a07c63cef713c8c2670e5e124aae0411b206";
+      sha256 = "0ngfdh4jx19w60rfhrj9dm3fwcqk4m303sn8sm82kdjn3igbyqyl";
+    }
+  ;
+
+  shellpkgsCrossFixed = pkgsImportFunc {
+    inherit nixpkgs;
+    pkgsPath = shellpkgsCrossFixedFetched;
+    additionalOverrides = (pkgs: with pkgs; rec {
+      # guile 2.2 doesn't cross compile. See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=28920
+      guile = pkgs.guile_2_0;
+
+      # We really don't need libapparmor and it is a pain to cross compile due to
+      # its perl bindings
+      systemd = pkgs.systemd.override { libapparmor = null; };
+    });
+  };
+
+  shellpkgsCrossAarch64LinuxGnu = ({ pkgsPath }:
+    let
+			platform = (import "${builtins.toString pkgsPath}/lib/systems/platforms.nix").aarch64-multiplatform;
+      pkgs = import pkgsPath {
+        crossSystem = (import "${builtins.toString pkgsPath}/lib").systems.examples.aarch64-multiplatform;
+      };
+    in pkgs) { pkgsPath = shellpkgsCrossFixedFetched; };
+
 
   callPackage = shellpkgs.newScope {
     inherit callPackage # self import to override old callPackage
-      shellpkgs
       nixpkgs
-      nixpkgsChannelsFetched
+      shellpkgs
+      shellpkgsCrossFixed
+      shellpkgsCrossAarch64LinuxGnu
+
       labshellExpressionsLocal
       labshellExpressionsRemoteURL
       ;
     inherit (nixpkgs.stdenv) mkDerivation;
+    inherit (shellpkgs) mkShellDerivation;
   };
 
-  labshellsUnstable = shellpkgs.lib.filterAttrs (k: v:
+  labshellsUnstable = nixpkgs.lib.filterAttrs (k: v:
       (builtins.isAttrs v)
     ) (callPackage ./shells { prefix = "labshell"; });
 
-  labshellsStable = shellpkgs.lib.filterAttrs (k: v:
+  labshellsStable = nixpkgs.lib.filterAttrs (k: v:
       (builtins.isAttrs v) && !( (builtins.hasAttr "unstable" v) && v.unstable == true)
     ) (callPackage ./shells { prefix = "labshell"; });
 

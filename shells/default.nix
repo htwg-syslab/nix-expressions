@@ -1,14 +1,15 @@
 { nixpkgs
-, nixpkgsChannelsFetched
 , shellpkgs
 , callPackage
 , prefix
 , mkDerivation
+, mkShellDerivation
+
+, shellpkgsCrossAarch64LinuxGnu
+, shellpkgsCrossFixed
 }:
 
 let
-  mkShellDerivation = callPackage ./mkShellDerivation.nix;
-
   rustExtended = rec {
     channels = {
       stable = shellpkgs.rustChannels.stable;
@@ -21,14 +22,6 @@ let
     stable = (channels.stable.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
     nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
   };
-
-  crossPkgsAarch64LinuxGnu = ({ pkgsPath }:
-    let
-			platform = (import "${builtins.toString pkgsPath}/lib/systems/platforms.nix").aarch64-multiplatform;
-      pkgs = import pkgsPath {
-        crossSystem = (import "${builtins.toString pkgsPath}/lib").systems.examples.aarch64-multiplatform;
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
 
   dependencies = ({ dpkgs ? shellpkgs }: {
     base =
@@ -83,6 +76,7 @@ let
         bats
         shellcheck
         python27Full
+        gcc
         clang
         cmake
         lldb
@@ -165,9 +159,10 @@ let
           glibc.static
           zlibStatic.static
           zlibStatic.dev.static
-          bbStatic.nativeBuildInputs
+
+          linuxPackages.kernel.buildInputs
+          dropbear.buildInputs
           bbStatic.buildInputs
-          dbStatic.nativeBuildInputs
           dbStatic.buildInputs
         ];
 
@@ -448,6 +443,8 @@ let
   };
 
   linuxDevCrossAarch64 = { unstable = true; } // mkShellDerivation rec {
+    shellpkgs = shellpkgsCrossFixed;
+
     inherit prefix;
     flavor = "linuxDevCrossAarch64mixed";
 
@@ -459,8 +456,8 @@ let
       rust.stable
     ];
 
-    crosspkgs = crossPkgsAarch64LinuxGnu;
-    crossBuildInputs = with (dependencies{ dpkgs = crossPkgsAarch64LinuxGnu; }); [
+    shellcrosspkgs = shellpkgsCrossAarch64LinuxGnu;
+    crossBuildInputs = with (dependencies{ dpkgs = shellcrosspkgs; }); [
       linuxDevelopment
       linuxDevelopmentStatic
     ];
