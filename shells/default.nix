@@ -120,7 +120,7 @@ let
       with dpkgs; [
         sqlite
         postgresql
-    ];
+      ];
 
     linuxDevelopment =
       with dpkgs; [
@@ -146,24 +146,30 @@ let
         eject # util-linux
       ];
 
-    linuxDevelopmentStatic = let
-      bbStatic = dpkgs.busybox.override {
-        enableStatic=true;
-      };
+    linuxDevelopmentStatic =
+      let
+        bbStatic = dpkgs.busybox.override {
+          enableStatic=true;
+        };
 
-      dbStatic = dpkgs.dropbear.override {
-        enableStatic=true;
-      };
-     in
-      with dpkgs; [
-        glibc # FIXME: why is this needed for busybox to build?
-        glibc.static
-        zlib.static
-        bbStatic.nativeBuildInputs
-        bbStatic.buildInputs
-        dbStatic.nativeBuildInputs
-        dbStatic.buildInputs
-      ];
+        dbStatic = dpkgs.dropbear.override {
+          enableStatic=true;
+        };
+
+        zlibStatic = dpkgs.zlib.override {
+          static = true;
+        };
+      in
+        with dpkgs; [
+          glibc # FIXME: why is this needed for busybox to build?
+          glibc.static
+          zlibStatic.static
+          zlibStatic.dev.static
+          bbStatic.nativeBuildInputs
+          bbStatic.buildInputs
+          dbStatic.nativeBuildInputs
+          dbStatic.buildInputs
+        ];
 
     rustCrates = {
       base = {
@@ -256,6 +262,7 @@ let
     code = ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
+      unset CC LD AR AS
     '';
     rust = ({rustVariant ? "stable", rustDeps ? [ "base" ]}: ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
@@ -290,9 +297,9 @@ let
   base = mkShellDerivation rec {
     inherit prefix;
     flavor = "base";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-    ;
+    ];
     shellHook = with shellHooks;
       base
     ;
@@ -301,10 +308,10 @@ let
   code = mkShellDerivation rec {
     inherit prefix;
     flavor = "code";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ code
-    ;
+      code
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -341,11 +348,11 @@ let
   bsysNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "bsysNightly";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ code
-      ++ rust.nightly
-    ;
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -356,12 +363,12 @@ let
   rtos =  { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtos";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ osDevelopment
-      ++ code
-      ++ rust.stable
-    ;
+      osDevelopment
+      code
+      rust.stable
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -372,12 +379,12 @@ let
   rtosNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtosNightly";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ osDevelopment
-      ++ code
-      ++ rust.nightly
-    ;
+      osDevelopment
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -388,14 +395,15 @@ let
   osdev = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "osdev";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
+      linuxDevelopment
+      linuxDevelopmentTools
+
       base
-      ++ osDevelopment
-      ++ code
-      ++ linuxDevelopment
-      ++ linuxDevelopmentTools
-      ++ rust.nightly
-    ;
+      osDevelopment
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -406,12 +414,13 @@ let
   rustWebDev = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rustWebDev";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
+      webDevelopment
+
       base
-      ++ code
-      ++ rust.nightly
-      ++ webDevelopment
-    ;
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -419,32 +428,18 @@ let
     ;
   };
 
-  sysoHW0 = let
-    in mkShellDerivation rec {
+  linuxDevNative = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
-    flavor = "sysoHW0";
-    buildInputs = with (dependencies{});
-      base
-      ++ code
-    ;
-    shellHook = with shellHooks;
-      base
-      + code
-    ;
-  };
+    flavor = "linuxDevNativeMixed";
+    buildInputs = with (dependencies{}); [
+      linuxDevelopmentTools
+      linuxDevelopment
+      linuxDevelopmentStatic
 
-  sysoHW1 = let
-    in mkShellDerivation rec {
-    inherit prefix;
-    flavor = "sysoHW1";
-    buildInputs = with (dependencies{});
       base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentStatic
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
+      code
+      rust.stable
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -452,49 +447,54 @@ let
     ;
   };
 
-  sysoHW2 = mkShellDerivation rec {
+  linuxDevCrossAarch64 = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
-    flavor = "sysoHW2";
-    buildInputs = with (dependencies{});
+    flavor = "linuxDevCrossAarch64mixed";
+
+    buildInputs = with (dependencies{}); [
+      linuxDevelopmentTools
+
       base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentStatic
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
-    shellHook = with shellHooks;
-      base
-      + code
-      + (rust {rustVariant="stable";})
-    ;
-  };
-
-
-
-  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
-    inherit prefix;
-    flavor = "sysoHW3";
-
-    buildInputs = with (dependencies{});
-      base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
+      code
+      rust.stable
+    ];
 
     crosspkgs = crossPkgsAarch64LinuxGnu;
     crossBuildInputs = with (dependencies{ dpkgs = crossPkgsAarch64LinuxGnu; }); [
-        linuxDevelopment
+      linuxDevelopment
+      linuxDevelopmentStatic
     ];
 
     shellHook = with shellHooks;
-        base
-        + code
-        + (rust {rustVariant="stable";})
-        + cross
+      base
+      + code
+      + (rust {rustVariant="stable";})
+      + cross
     ;
+  };
+
+  sysoHW0 = shellDerivations.code.override {
+    flavor = "sysoHW0";
+  };
+
+  sysoHW1 = shellDerivations.linuxDevNative.override {
+    flavor = "sysoHW1";
+  };
+
+  sysoHW2 = shellDerivations.linuxDevNative.override {
+    flavor = "sysoHW2";
+  };
+
+  sysoHW3 = shellDerivations.linuxDevCrossAarch64.override {
+    flavor = "sysoHW3";
+  };
+
+  sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
+    flavor = "sysoHW5";
+  };
+
+  sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
+    flavor = "sysoHW5";
   };
 
   sysoFHS = { unstable = true; } // (shellpkgs.buildFHSUserEnv rec {
@@ -522,10 +522,4 @@ let
   }; # shellDerivations }
 
 in shellDerivations // {
-  sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
-    flavor = "sysoHW4";
-  };
-  sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
-    flavor = "sysoHW5";
-  };
 }
