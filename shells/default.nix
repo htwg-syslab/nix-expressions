@@ -1,19 +1,21 @@
-{ pkgs
-, nixpkgsChannelsFetched
+{ nixpkgs
+, shellpkgs
 , callPackage
 , prefix
 , mkDerivation
+, mkShellDerivation
+
+, shellpkgsCrossAarch64LinuxGnu
+, shellpkgsCrossFixed
 }:
 
 let
-  mkShellDerivation = callPackage ./mkShellDerivation.nix;
-
   rustExtended = rec {
     channels = {
-      stable = pkgs.rustChannels.stable;
-      nightly = with pkgs.lib.rustLib;
+      stable = shellpkgs.rustChannels.stable;
+      nightly = with shellpkgs.lib.rustLib;
         fromManifest (manifest_v2_url { channel = "nightly"; date = "2017-10-13"; }) {
-          inherit (pkgs) stdenv fetchurl patchelf;
+          inherit (shellpkgs) stdenv fetchurl patchelf;
         };
     };
 
@@ -21,79 +23,7 @@ let
     nightly = (channels.nightly.rust.override { extensions = [ "rust-src" "rls-preview" ]; });
   };
 
-  crossPkgsArmv7aLinuxGnueabihf = ({ pkgsPath }:
-    let
-      kernelConfig = "defconfig";
-      pkgs = import pkgsPath {
-        crossSystem = {
-          config = "armv7a-linux-gnueabihf";
-          bigEndian = false;
-          arch = "arm";
-          float = "hard";
-          withTLS = true;
-          libc = "glibc";
-          platform = {
-            name = "arm";
-            kernelMajor = "2.6";
-            kernelBaseConfig = kernelConfig;
-            kernelHeadersBaseConfig = kernelConfig;
-            uboot = null;
-            kernelArch = "arm";
-            kernelAutoModules = false;
-            kernelTarget = "vmlinux.bin";
-          };
-          openssl.system = "linux-generic32";
-          gcc.arch = "armv7-a";
-        };
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
-
-  crossPkgsArmv5LinuxGnueabi = ({ pkgsPath }:
-    let
-      kernelConfig = "defconfig";
-      pkgs = import nixpkgsChannelsFetched {
-        crossSystem = {
-          config = "armv5-linux-gnueabi";
-          bigEndian = false;
-          arch = "armv5";
-          float = "soft";
-          withTLS = true;
-          libc = "glibc";
-          platform = {
-            name = "arm";
-            kernelMajor = "2.6";
-            kernelBaseConfig = kernelConfig;
-            kernelHeadersBaseConfig = kernelConfig;
-            uboot = null;
-            kernelArch = "arm";
-            kernelAutoModules = false;
-            kernelTarget = "vmlinux.bin";
-          };
-          openssl.system = "linux-generic32";
-          gcc.arch = "armv5";
-        };
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
-
-  crossPkgsAarch64LinuxGnu = ({ pkgsPath }:
-    let
-			platform = (import "${builtins.toString pkgsPath}/lib/systems/platforms.nix").aarch64-multiplatform;
-      pkgs = import pkgsPath {
-        crossSystem = {
-          config = "aarch64-linux-gnu";
-          bigEndian = false;
-          arch = "aarch64";
-          float = "hard";
-          withTLS = true;
-          libc = "glibc";
-					inherit platform;
-          inherit (platform) gcc;
-          openssl.system = "linux-generic64";
-        };
-      };
-    in pkgs) { pkgsPath = nixpkgsChannelsFetched; };
-
-  dependencies = ({ dpkgs ? pkgs }: {
+  dependencies = ({ dpkgs ? shellpkgs }: {
     base =
       with dpkgs; [
         dpkg customLesspipe
@@ -146,6 +76,7 @@ let
         bats
         shellcheck
         python27Full
+        gcc
         clang
         cmake
         lldb
@@ -183,7 +114,7 @@ let
       with dpkgs; [
         sqlite
         postgresql
-    ];
+      ];
 
     linuxDevelopment =
       with dpkgs; [
@@ -209,24 +140,31 @@ let
         eject # util-linux
       ];
 
-    linuxDevelopmentStatic = let
-      bbStatic = dpkgs.busybox.override {
-        enableStatic=true;
-      };
+    linuxDevelopmentStatic =
+      let
+        bbStatic = dpkgs.busybox.override {
+          enableStatic=true;
+        };
 
-      dbStatic = dpkgs.dropbear.override {
-        enableStatic=true;
-      };
-     in
-      with dpkgs; [
-        glibc # FIXME: why is this needed for busybox to build?
-        glibc.static
-        zlib.static
-        bbStatic.nativeBuildInputs
-        bbStatic.buildInputs
-        dbStatic.nativeBuildInputs
-        dbStatic.buildInputs
-      ];
+        dbStatic = dpkgs.dropbear.override {
+          enableStatic=true;
+        };
+
+        zlibStatic = dpkgs.zlib.override {
+          static = true;
+        };
+      in
+        with dpkgs; [
+          glibc # FIXME: why is this needed for busybox to build?
+          glibc.static
+          zlibStatic.static
+          zlibStatic.dev.static
+
+          linuxPackages.kernel.buildInputs
+          dropbear.buildInputs
+          bbStatic.buildInputs
+          dbStatic.buildInputs
+        ];
 
     rustCrates = {
       base = {
@@ -306,19 +244,20 @@ let
   shellHooks = {
     base = ''
       export EDITOR=vim
-      export PAGER=${pkgs.less}/bin/less
-      source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
-      export GIT_SSH=${pkgs.openssh_with_kerberos}/bin/ssh
+      export PAGER=${shellpkgs.less}/bin/less
+      source ${shellpkgs.bash-completion}/etc/profile.d/bash_completion.sh
+      export GIT_SSH=${shellpkgs.openssh_with_kerberos}/bin/ssh
       git config --global merge.tool 1>/dev/null || git config --global merge.tool vimdiff
       export MANPATH=${genManPath {deps=(dependencies{}).base;}}
       '' +
       # FIXME: whys is this needed?
       ''
-      source ${pkgs.gitFull}/etc/bash_completion.d/git-completion.bash
+      source ${shellpkgs.gitFull}/etc/bash_completion.d/git-completion.bash
     '';
     code = ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).code;}}
       export hardeningDisable=all
+      unset CC LD AR AS
     '';
     rust = ({rustVariant ? "stable", rustDeps ? [ "base" ]}: ''
       export MANPATH=$MANPATH:${genManPath {deps=(dependencies{}).rust."${rustVariant}";}}
@@ -341,10 +280,6 @@ let
     '');
 
     cross = ''
-      export CROSS_CC=$CC
-      export CROSS_CXX=$CXX
-      export CXX=g++
-      export CC=gcc
       PATH_CROSS=$(echo $PATH | tr ':' '\n' | grep $(echo $crossConfig | cut -d'-' -f1 )| tr '\n' ':')
       PATH_NATIVE=$(echo $PATH | tr ':' '\n' | grep -v $(echo $crossConfig | cut -d'-' -f1 )| tr '\n' ':')
       export PATH=$PATH_NATIVE:$PATH_CROSS
@@ -357,9 +292,9 @@ let
   base = mkShellDerivation rec {
     inherit prefix;
     flavor = "base";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-    ;
+    ];
     shellHook = with shellHooks;
       base
     ;
@@ -368,10 +303,10 @@ let
   code = mkShellDerivation rec {
     inherit prefix;
     flavor = "code";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ code
-    ;
+      code
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -408,11 +343,11 @@ let
   bsysNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "bsysNightly";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ code
-      ++ rust.nightly
-    ;
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -423,12 +358,12 @@ let
   rtos =  { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtos";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ osDevelopment
-      ++ code
-      ++ rust.stable
-    ;
+      osDevelopment
+      code
+      rust.stable
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -439,12 +374,12 @@ let
   rtosNightly = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rtosNightly";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
       base
-      ++ osDevelopment
-      ++ code
-      ++ rust.nightly
-    ;
+      osDevelopment
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -455,14 +390,15 @@ let
   osdev = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "osdev";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
+      linuxDevelopment
+      linuxDevelopmentTools
+
       base
-      ++ osDevelopment
-      ++ code
-      ++ linuxDevelopment
-      ++ linuxDevelopmentTools
-      ++ rust.nightly
-    ;
+      osDevelopment
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -473,12 +409,13 @@ let
   rustWebDev = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
     flavor = "rustWebDev";
-    buildInputs = with (dependencies{});
+    buildInputs = with (dependencies{}); [
+      webDevelopment
+
       base
-      ++ code
-      ++ rust.nightly
-      ++ webDevelopment
-    ;
+      code
+      rust.nightly
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -486,32 +423,18 @@ let
     ;
   };
 
-  sysoHW0 = let
-    in mkShellDerivation rec {
+  linuxDevNative = { unstable = true; } // mkShellDerivation rec {
     inherit prefix;
-    flavor = "sysoHW0";
-    buildInputs = with (dependencies{});
-      base
-      ++ code
-    ;
-    shellHook = with shellHooks;
-      base
-      + code
-    ;
-  };
+    flavor = "linuxDevNativeMixed";
+    buildInputs = with (dependencies{}); [
+      linuxDevelopmentTools
+      linuxDevelopment
+      linuxDevelopmentStatic
 
-  sysoHW1 = let
-    in mkShellDerivation rec {
-    inherit prefix;
-    flavor = "sysoHW1";
-    buildInputs = with (dependencies{});
       base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentStatic
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
+      code
+      rust.stable
+    ];
     shellHook = with shellHooks;
       base
       + code
@@ -519,52 +442,59 @@ let
     ;
   };
 
-  sysoHW2 = mkShellDerivation rec {
+  linuxDevCrossAarch64 = { unstable = true; } // mkShellDerivation rec {
+    shellpkgs = shellpkgsCrossFixed;
+
     inherit prefix;
-    flavor = "sysoHW2";
-    buildInputs = with (dependencies{});
+    flavor = "linuxDevCrossAarch64mixed";
+
+    buildInputs = with (dependencies{}); [
+      linuxDevelopmentTools
+
       base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentStatic
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
-    shellHook = with shellHooks;
-      base
-      + code
-      + (rust {rustVariant="stable";})
-    ;
-  };
+      code
+      rust.stable
+    ];
 
-
-
-  sysoHW3 = { unstable = true; } // mkShellDerivation rec {
-    inherit prefix;
-    flavor = "sysoHW3";
-
-    buildInputs = with (dependencies{});
-      base
-      ++ linuxDevelopment
-      ++ linuxDevelopmentTools
-      ++ code
-      ++ rust.stable
-    ;
-
-    crosspkgs = crossPkgsAarch64LinuxGnu;
-    crossBuildInputs = with (dependencies{ dpkgs = crossPkgsAarch64LinuxGnu; }); [
-        linuxDevelopment
+    shellcrosspkgs = shellpkgsCrossAarch64LinuxGnu;
+    crossBuildInputs = with (dependencies{ dpkgs = shellcrosspkgs; }); [
+      linuxDevelopment
+      linuxDevelopmentStatic
     ];
 
     shellHook = with shellHooks;
-        base
-        + code
-        + (rust {rustVariant="stable";})
-        + cross
+      base
+      + code
+      + (rust {rustVariant="stable";})
+      + cross
     ;
   };
 
-  sysoFHS = { unstable = true; } // (pkgs.buildFHSUserEnv rec {
+  sysoHW0 = shellDerivations.code.override {
+    flavor = "sysoHW0";
+  };
+
+  sysoHW1 = shellDerivations.linuxDevNative.override {
+    flavor = "sysoHW1";
+  };
+
+  sysoHW2 = shellDerivations.linuxDevNative.override {
+    flavor = "sysoHW2";
+  };
+
+  sysoHW3 = shellDerivations.linuxDevCrossAarch64.override {
+    flavor = "sysoHW3";
+  };
+
+  sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
+    flavor = "sysoHW5";
+  };
+
+  sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
+    flavor = "sysoHW5";
+  };
+
+  sysoFHS = { unstable = true; } // (shellpkgs.buildFHSUserEnv rec {
     flavor = "sysoFHS";
     name = "${prefix}_${flavor}";
     targetPkgs = pkgs: with pkgs;[
@@ -589,10 +519,4 @@ let
   }; # shellDerivations }
 
 in shellDerivations // {
-  sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
-    flavor = "sysoHW4";
-  };
-  sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
-    flavor = "sysoHW5";
-  };
 }

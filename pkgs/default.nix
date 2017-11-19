@@ -43,4 +43,6 @@ in {
   };
 
   labshell = callPackage ./labshell { };
+
+  mkShellDerivation = callPackage ./mkShellDerivation;
 }
