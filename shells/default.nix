@@ -487,7 +487,7 @@ let
   };
 
   sysoHW4 = { unstable = true; } // shellDerivations.sysoHW3.override {
-    flavor = "sysoHW5";
+    flavor = "sysoHW4";
   };
 
   sysoHW5 = { unstable = true; } // shellDerivations.sysoHW3.override {
